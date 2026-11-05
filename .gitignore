@@ -147,3 +147,9 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Project secrets & scratch space (see claude.md)
+!.env.example
+credentials.json
+token.json
+.tmp/
