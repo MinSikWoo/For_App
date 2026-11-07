@@ -49,6 +49,9 @@
       <button class="secondary" id="startReview" type="button" hidden></button>
     </div>
 
+    <h2>미니게임</h2>
+    <div class="mini-list" id="miniList"></div>
+
     <h2>설정</h2>
     <div class="settings">
       <label class="switch"><input type="checkbox" id="optBrackets"><span class="knob"></span><span>후리가나에 괄호 표시 <span class="ex jp" lang="ja">例: <ruby>食<rt>た</rt></ruby>べる</span></span></label>
@@ -60,7 +63,7 @@
       <div id="wordList"></div>
     </details>
 
-    <p class="foot">정답 1개 = 보석 1개, 3연속부터 2개, 5연속부터 3개. 10문제를 다 맞히면 보너스 10개! 같은 단어를 3번 연속 맞히면 ‘외운 단어’가 돼요. 기록과 보석은 이 기기의 브라우저에만 저장돼요.</p>
+    <p class="foot">정답 1개 = 보석 1개, 3연속부터 2개, 5연속부터 3개. 10문제를 다 맞히면 보너스 10개! 미니게임으로도 보석을 받아요. 같은 단어를 3번 연속 맞히면 ‘외운 단어’가 돼요. 기록과 보석은 이 기기의 브라우저에만 저장돼요.</p>
   </section>
 
   <!-- 게임 -->
@@ -116,6 +119,28 @@
     </div>
   </section>
 
+  <!-- 미니게임 -->
+  <section id="mini" hidden>
+    <div class="hud">
+      <button class="ghost press" id="miniQuit" type="button">그만하기</button>
+      <span class="mini-title" id="miniTitle"></span>
+      <span class="gems hud-gems" id="miniGems"></span>
+    </div>
+    <div id="miniBody"></div>
+    <div id="miniEnd" hidden>
+      <div class="result-hero card">
+        <div class="pet-slot" id="miniPet" style="width:116px"></div>
+        <span class="badge" id="miniSub"></span>
+        <h1 class="result-title" id="miniHead"></h1>
+        <span class="reward" id="miniReward"></span>
+      </div>
+      <div style="display:grid;gap:12px;margin-top:16px">
+        <button class="primary" id="miniAgain" type="button">한 번 더!</button>
+        <button class="secondary blue" id="miniHome" type="button">처음으로</button>
+      </div>
+    </div>
+  </section>
+
   <!-- 내 방 -->
   <section id="room" hidden>
     <div class="page-head"><h1>내 방</h1><span class="gems gem-chip"></span></div>
@@ -124,6 +149,7 @@
       <div class="floor" id="roomFloor"></div>
       <span class="slot slot-deco" id="slot-deco"></span>
       <span class="slot slot-ceil" id="slot-ceil"></span>
+      <span class="slot slot-rug" id="slot-rug"></span>
       <span class="slot slot-plant" id="slot-plant"></span>
       <span class="slot slot-furn" id="slot-furn"></span>
       <button class="room-pet" id="roomPet" type="button" aria-label="펫 쓰다듬기"></button>
@@ -164,3 +190,4 @@
 <script src="words.js"></script>
 <script src="shop.js"></script>
 <script src="app.js"></script>
+<script src="minigames.js"></script>

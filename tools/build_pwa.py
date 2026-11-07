@@ -112,6 +112,7 @@ def build_artifact(out, data):
                 r"\s*if \('serviceWorker' in navigator\)[^\n]*"]:
         page = re.sub(pat, "", page, flags=re.I)
     page = page.replace("fetch('app.enc'", "fetch('app.json'")
+    page = page.replace("<title>일본어 단어 카드</title>", "<title>공유용 단어 카드</title>")
     # 아티팩트는 body 배경을 직접 칠해야 하므로 html 높이 설정만 유지
     if out.exists():
         shutil.rmtree(out)

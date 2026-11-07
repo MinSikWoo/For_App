@@ -118,9 +118,9 @@
   var current = 'home';
   function show(id) {
     current = id;
-    ['home', 'play', 'result', 'room', 'shop'].forEach(function (s) { $(s).hidden = s !== id; });
-    document.documentElement.classList.toggle('playing', id === 'play');
-    var tab = id === 'result' ? 'home' : id;
+    ['home', 'play', 'result', 'room', 'shop', 'mini'].forEach(function (s) { $(s).hidden = s !== id; });
+    document.documentElement.classList.toggle('playing', id === 'play' || id === 'mini');
+    var tab = id === 'result' || id === 'mini' ? 'home' : id;
     Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) {
       if (t.dataset.tab === tab) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
     });
@@ -328,11 +328,11 @@
   // ---------- room ----------
   function renderRoom() {
     var wp = itemById(S.equip.wallpaper), fl = itemById(S.equip.floor);
-    $('roomWall').style.background = wp ? wp.icon : '';
-    $('roomFloor').style.background = fl ? fl.icon : '';
-    ['deco', 'ceil', 'plant', 'furn', 'toy', 'food'].forEach(function (slot) {
+    $('roomWall').style.background = wp ? wp.bg : '';
+    $('roomFloor').style.background = fl ? fl.bg : '';
+    ['rug', 'deco', 'ceil', 'plant', 'furn', 'toy', 'food'].forEach(function (slot) {
       var it = itemById(S.equip[slot]); var el = $('slot-' + slot);
-      el.textContent = it ? it.icon : ''; el.hidden = !it;
+      el.innerHTML = it ? SHOP.itemSVG(it) : ''; el.hidden = !it;
     });
     $('roomPet').innerHTML = petSVG('smile');
     $('say').hidden = true;
@@ -361,7 +361,7 @@
 
   // ---------- shop ----------
   var shopCat = 'pet', ownedOnly = false, armed = null, armT;
-  var HINTS = { pet: '펫은 한 마리와 같이 살아요', wallpaper: '방 벽지를 바꿔요', floor: '방 바닥을 바꿔요', hat: '펫 머리에 씌워요. 다시 누르면 벗어요', face: '펫 얼굴에 붙여요. 다시 누르면 떼요', neck: '펫 목에 걸어요. 다시 누르면 빼요' };
+  var HINTS = { pet: '펫은 한 마리와 같이 살아요', wallpaper: '방 벽지를 바꿔요', floor: '방 바닥을 바꿔요', hat: '펫 머리에 씌워요. 다시 누르면 벗어요', face: '펫 얼굴에 붙여요. 다시 누르면 떼요', neck: '펫 목에 걸어요. 다시 누르면 빼요', clothes: '펫에게 입혀요. 다시 누르면 벗어요', back: '펫 등에 달아요. 다시 누르면 빼요', rug: '펫 발밑에 깔아요. 다시 누르면 치워요' };
   function shopList() {
     if (shopCat === 'pet') return SHOP.PETS.map(function (p) { return { id: p.id, slot: 'pet', price: p.price, pet: p }; });
     return SHOP.ITEMS.filter(function (x) { return x.slot === shopCat; });
@@ -379,8 +379,9 @@
     $('shopGrid').innerHTML = list.length ? list.map(function (it) {
       var owned = !!S.owned[it.id], on = owned && isOn(it), pv, nm;
       if (it.pet) { pv = SHOP.petSVG(it.id, 'smile', {}); nm = '<span><span class="jp" lang="ja">' + jp(it.pet.name) + '</span><br>' + it.pet.ko + '</span>'; }
-      else if (it.slot === 'wallpaper' || it.slot === 'floor') { pv = '<span style="display:block;width:100%;height:100%;background:' + it.icon + '"></span>'; nm = it.name; }
-      else { pv = '<span>' + it.icon + '</span>'; nm = it.name; }
+      else if (it.slot === 'wallpaper' || it.slot === 'floor') { pv = '<span style="display:block;width:100%;height:100%;background:' + it.bg + '"></span>'; nm = it.name; }
+      else if (SHOP.PET_SLOTS.indexOf(it.slot) >= 0) { var one = {}; one[it.slot] = it.id; pv = SHOP.petSVG(S.pet, 'smile', one); nm = it.name; }
+      else { pv = SHOP.itemSVG(it); nm = it.name; }
       var pr = on ? (it.slot === 'pet' ? '같이 사는 중' : '사용 중') : owned ? '가지고 있음' : armed === it.id ? '한 번 더 누르면 구매' : GEM + it.price;
       var cls = 'item press' + (owned ? ' owned' : '') + (on ? ' on' : '') + (armed === it.id ? ' armed' : '') + (!owned && S.gems < it.price ? ' poor' : '');
       return '<button type="button" class="' + cls + '" data-item="' + it.id + '"><span class="pv">' + pv + '</span><span class="nm">' + nm + '</span><span class="pr">' + pr + '</span></button>';
@@ -414,6 +415,13 @@
     saveS(); updateGems(true); renderShop();
     toast(GEM + ' ' + label + ' 구매 완료! ' + (it.slot === 'pet' ? '이제 같이 살아요' : '바로 사용했어요'));
   });
+
+  // ---------- 미니게임에서 쓰는 기능 ----------
+  window.APP = {
+    W: W, GEM: GEM, levelPool: levelPool, jp: jp, jpSpan: jpSpan, shuffle: shuffle, speak: speak, toast: toast, show: show, go: go,
+    petSVG: function (face) { return petSVG(face); },
+    award: function (n) { if (n > 0) { S.gems += n; saveS(); updateGems(true); } }
+  };
 
   // ---------- start ----------
   applySettings();

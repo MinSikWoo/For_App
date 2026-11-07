@@ -11,8 +11,8 @@ tools/          # 실제 일을 하는 스크립트
 
 ## 앱 목록
 
-- `japanese-word-game/` — 일본어 단어 카드 게임 (JLPT N5 153 + N4 183단어, 한자 위 후리가나, 보석으로 펫 10종·소품 100개 수집).
-  - `words.js` 단어 목록 · `shop.js` 펫/소품 목록과 가격 · `app.js` 게임 동작 · `style.css` 디자인
+- `japanese-word-game/` — 일본어 단어 카드 게임 (JLPT N5 153 + N4 183단어, 한자 위 후리가나, 미니게임 3종, 보석으로 동글 펫 10종·소품 132개 수집).
+  - `words.js` 단어 목록 · `shop.js` 펫/소품 그림·가격 · `app.js` 게임 동작 · `minigames.js` 미니게임 · `style.css` 디자인
 
 ## 다른 휴대폰에 설치 (비밀번호 잠금 웹앱)
 
