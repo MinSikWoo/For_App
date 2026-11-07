@@ -1,0 +1,132 @@
+<title>동글 펫 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Zen+Maru+Gothic:wght@700&display=swap">
+<style>
+/* Layout: a single column of soft cards on dotted memo paper, same world as the game; each pet gets one big portrait and three small moods. */
+:root {
+  --paper: #FFF6F4; --dot: #F6DCDD; --card: #FFFFFF; --ink: #45343F; --muted: #957F8C; --line: #F2DFE3;
+  --momo: #FF8DA6; --momo-deep: #E0587C; --momo-soft: #FFE7EC; --sora-soft: #E6EEFF; --kinako-soft: #FFF3D1; --matcha-soft: #E1F5E9;
+  --shadow: 0 2px 0 var(--line), 0 14px 30px -20px rgba(224, 88, 124, .45);
+  --display: "Jua", "Gowun Dodum", sans-serif; --ui: "Gowun Dodum", "Apple SD Gothic Neo", sans-serif; --jp: "Zen Maru Gothic", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #241B22; --dot: #33262F; --card: #30252E; --ink: #F8EAF0; --muted: #BBA3B2; --line: #45363F;
+  --momo-deep: #FF8FAB; --momo-soft: #4A2C39; --sora-soft: #283048; --kinako-soft: #413720; --matcha-soft: #23392D;
+  --shadow: 0 2px 0 rgba(0,0,0,.25), 0 14px 30px -20px rgba(0,0,0,.6); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #241B22; --dot: #33262F; --card: #30252E; --ink: #F8EAF0; --muted: #BBA3B2; --line: #45363F;
+  --momo-deep: #FF8FAB; --momo-soft: #4A2C39; --sora-soft: #283048; --kinako-soft: #413720; --matcha-soft: #23392D;
+  --shadow: 0 2px 0 rgba(0,0,0,.25), 0 14px 30px -20px rgba(0,0,0,.6); color-scheme: dark; }
+body { background-color: var(--paper); background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px); background-size: 22px 22px; color: var(--ink); font-family: var(--ui); font-size: 16px; line-height: 1.6; word-break: keep-all; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 24px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: 32px; margin: 0; line-height: 1.2; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 21px; margin: 14px 0 -4px; display: flex; align-items: center; gap: 8px; }
+h2::before { content: ""; width: 10px; height: 10px; border-radius: 4px; background: var(--momo); transform: rotate(45deg); }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 60ch; }
+.badge { align-self: flex-start; font-size: 12.5px; font-weight: 700; color: var(--momo-deep); background: var(--momo-soft); padding: 3px 10px; border-radius: 999px; }
+.jp { font-family: var(--jp); font-weight: 700; }
+rt { font-family: var(--jp); font-size: .45em; color: var(--momo-deep); }
+rt::before { content: "("; } rt::after { content: ")"; }
+.card { background: var(--card); border-radius: 26px; box-shadow: var(--shadow); }
+svg { display: block; overflow: visible; }
+
+.compare { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 18px; }
+.compare figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.compare figure > div { width: min(150px, 34vw); }
+.compare figcaption { font-size: 14px; color: var(--muted); }
+.compare figure.new figcaption { color: var(--momo-deep); font-weight: 700; }
+.arrow { font-family: var(--display); font-size: 28px; color: var(--momo); }
+
+.pets { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.pet { padding: 16px 16px 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.pet .big { width: 150px; animation: bob 3.2s ease-in-out infinite; transform-origin: 50% 90%; }
+.pet:nth-child(2) .big { animation-delay: -.6s; } .pet:nth-child(3) .big { animation-delay: -1.2s; } .pet:nth-child(4) .big { animation-delay: -1.8s; } .pet:nth-child(5) .big { animation-delay: -2.4s; }
+.pet .nm { display: flex; align-items: baseline; gap: 8px; }
+.pet .nm .jp { font-size: 22px; line-height: 1.5; }
+.pet .wear { font-size: 13px; color: var(--muted); }
+.moods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
+.moods figure { margin: 0; background: var(--paper); border-radius: 16px; padding: 8px 6px 4px; display: flex; flex-direction: column; align-items: center; }
+.moods figure > div { width: 100%; max-width: 64px; }
+.moods figcaption { font-size: 12px; color: var(--muted); }
+
+.items { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.items figure { margin: 0; background: var(--card); border-radius: 20px; padding: 10px 8px 8px; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; min-width: 0; }
+.items figure > div { width: 100%; aspect-ratio: 1; max-width: 100%; border-radius: 14px; background: var(--paper); display: grid; place-items: center; }
+.items svg { width: 80%; height: auto; }
+.items figcaption { font-size: 13px; line-height: 1.35; }
+
+.plan { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.plan ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.plan li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.plan li b { font-family: var(--display); font-weight: 400; font-size: 15px; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.t1 { background: var(--momo-soft); } .t2 { background: var(--sora-soft); } .t3 { background: var(--kinako-soft); } .t4 { background: var(--matcha-soft); }
+.plan small { color: var(--muted); display: block; }
+.ask { text-align: center; color: var(--muted); font-size: 14.5px; }
+@keyframes bob { 50% { transform: translateY(-5px) rotate(-2deg); } }
+@media (prefers-reduced-motion: reduce) { .pet .big { animation: none; } }
+@media (max-width: 520px) { .items { grid-template-columns: repeat(2, 1fr); } }
+</style>
+
+<div class="wrap">
+  <span class="badge">캐릭터 시안 · 1차</span>
+  <h1>더 동글동글해진 펫 친구들</h1>
+  <p class="lede">찹쌀떡처럼 둥근 몸, 반짝이는 큰 눈, 아래로 모인 얼굴로 아기 같은 느낌을 살렸어요. 소품도 이모지 대신 직접 그린 그림이라 어느 휴대폰에서나 똑같이 보여요.</p>
+
+  <h2>지금과 비교</h2>
+  <div class="compare card">
+    <figure><div id="oldCat"></div><figcaption>지금 고양이</figcaption></figure>
+    <span class="arrow" aria-hidden="true">→</span>
+    <figure class="new"><div id="newCat"></div><figcaption>새 고양이</figcaption></figure>
+  </div>
+
+  <h2>캐릭터 예시 5종</h2>
+  <div class="pets" id="pets"></div>
+
+  <h2>새 소품 그림 예시</h2>
+  <div class="items" id="items"></div>
+
+  <h2>소품을 이렇게 늘릴 계획이에요</h2>
+  <div class="plan card">
+    <ul>
+      <li><b class="t1">펫 옷</b><span>새로 추가 · 앞치마, 망토, 기모노, 멜빵바지 등<small>몸에 입히는 옷 칸이 생겨요</small></span></li>
+      <li><b class="t2">펫 등</b><span>새로 추가 · 천사 날개, 작은 가방, 거북 등껍질 등</span></li>
+      <li><b class="t3">러그</b><span>새로 추가 · 펫 발밑에 까는 동글 러그</span></li>
+      <li><b class="t4">기존 칸</b><span>머리·얼굴·목·벽지·바닥·가구·식물·장난감·간식·천장도 전부 새 그림으로 다시 그려요</span></li>
+    </ul>
+    <p class="lede">합쳐서 소품 약 130개, 펫 10종 모두 위 스타일로 바꿀 예정이에요. 지금 모은 보석과 산 물건은 그대로 남아요.</p>
+  </div>
+  <p class="ask">마음에 드는 점, 바꾸고 싶은 점을 알려 주세요.</p>
+</div>
+
+<script src="shop.js"></script>
+<script src="pets2.js"></script>
+<script>
+(function () {
+  var D = window.PETS2;
+  function ruby(n) { return n.replace(/\{([^|}]+)\|([^}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>'); }
+  var LIST = [
+    ['cat', ['ribbon'], '분홍 리본'],
+    ['rabbit', ['crown'], '꽃 화관'],
+    ['bear', ['bell'], '방울 목걸이'],
+    ['penguin', ['glasses'], '동그란 안경'],
+    ['chick', ['berry'], '딸기 모자']
+  ];
+  document.getElementById('oldCat').innerHTML = window.SHOP ? window.SHOP.petSVG('cat', 'smile', {}) : '';
+  document.getElementById('newCat').innerHTML = D.draw('cat', 'smile', []);
+  document.getElementById('pets').innerHTML = LIST.map(function (x) {
+    var p = D.PETS[x[0]];
+    return '<div class="pet card"><div class="big">' + D.draw(x[0], 'smile', x[1]) + '</div>' +
+      '<div class="nm"><span class="jp" lang="ja">' + ruby(p.name) + '</span><b>' + p.ko + '</b></div>' +
+      '<span class="wear">입은 소품: ' + x[2] + '</span>' +
+      '<div class="moods">' + [['smile', '기본'], ['happy', '정답!'], ['sad', '오답']].map(function (m) {
+        return '<figure><div>' + D.draw(x[0], m[0], []) + '</div><figcaption>' + m[1] + '</figcaption></figure>';
+      }).join('') + '</div></div>';
+  }).join('');
+  document.getElementById('items').innerHTML = D.ITEMS.map(function (it) {
+    return '<figure><div><svg viewBox="0 0 100 100" aria-hidden="true">' + it[1] + '</svg></div><figcaption>' + it[0] + '</figcaption></figure>';
+  }).join('');
+})();
+</script>
