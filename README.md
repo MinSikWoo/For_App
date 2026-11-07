@@ -8,3 +8,7 @@ tools/          # 실제 일을 하는 스크립트
 .tmp/           # 임시 작업 공간 (GitHub에 안 올라감)
 .env            # 비밀 키 (GitHub에 안 올라감) — .env.example 참고
 ```
+
+## 앱 목록
+
+- `japanese-word-game/` — 일본어 단어 카드 게임 (JLPT N5 153단어, 한자 위 후리가나). 단어 추가는 `words.js`에 한 줄씩.
