@@ -2,187 +2,291 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Zen+Maru+Gothic:wght@500;700&display=swap">
 <style>
-/* Layout: one narrow column like a ring-bound vocabulary card deck; the word card is the hero, red-pen marks grade answers. */
+/* Layout: a single column of soft stationery cards on dotted memo paper; an onigiri mascot reacts to every answer. */
 :root {
-  --paper: #EEF1F6;
+  --paper: #FFF6F4;      /* strawberry-milk memo paper */
+  --dot: #F6DCDD;
   --card: #FFFFFF;
-  --ink: #1A2131;
-  --muted: #5D6679;
-  --line: #D6DCE7;
-  --ai: #2C4A96;        /* indigo: furigana, selection */
-  --ai-soft: #E3E9F7;
-  --shu: #C9372C;       /* teacher's red pen */
-  --shu-soft: #F8E2DF;
-  --good: #23784A;
-  --good-soft: #DDF1E5;
-  --jp: "Klee One", "Hiragino Mincho ProN", "Yu Mincho", serif;
-  --ui: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --r: 14px;
+  --ink: #45343F;        /* plum brown */
+  --muted: #957F8C;
+  --line: #F2DFE3;
+  --momo: #FF8DA6;       /* brand pink */
+  --momo-deep: #E0587C;  /* furigana, emphasis */
+  --momo-soft: #FFE7EC;
+  --matcha: #4FAF7C;     /* correct */
+  --matcha-soft: #E1F5E9;
+  --mikan: #F0844F;      /* wrong */
+  --mikan-soft: #FFEADF;
+  --sora: #7FA7F5;
+  --sora-soft: #E6EEFF;
+  --kinako: #F2C14E;
+  --kinako-soft: #FFF3D1;
+  --rice: #FFFFFF;
+  --face: #45343F;
+  --nori: #2E3A35;
+  --shadow: 0 2px 0 var(--line), 0 14px 30px -20px rgba(224, 88, 124, .45);
+  --display: "Jua", "Gowun Dodum", "Apple SD Gothic Neo", sans-serif;
+  --ui: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --jp: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #11141B; --card: #1A1F29; --ink: #E7EBF3; --muted: #9AA3B4; --line: #2B3240;
-    --ai: #8EA8F0; --ai-soft: #232D45; --shu: #F2766A; --shu-soft: #3A2224;
-    --good: #5FCB8D; --good-soft: #1C3328; color-scheme: dark;
+    --paper: #241B22; --dot: #33262F; --card: #30252E; --ink: #F8EAF0; --muted: #BBA3B2; --line: #45363F;
+    --momo: #FF9DB4; --momo-deep: #FF8FAB; --momo-soft: #4A2C39;
+    --matcha: #77D2A0; --matcha-soft: #23392D; --mikan: #FFA178; --mikan-soft: #45302A;
+    --sora: #9BBBFF; --sora-soft: #283048; --kinako: #F5CD6A; --kinako-soft: #413720;
+    --rice: #FFF8F2; --face: #45343F; --nori: #1B2420;
+    --shadow: 0 2px 0 rgba(0,0,0,.25), 0 14px 30px -20px rgba(0,0,0,.6);
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #11141B; --card: #1A1F29; --ink: #E7EBF3; --muted: #9AA3B4; --line: #2B3240;
-  --ai: #8EA8F0; --ai-soft: #232D45; --shu: #F2766A; --shu-soft: #3A2224;
-  --good: #5FCB8D; --good-soft: #1C3328; color-scheme: dark;
+  --paper: #241B22; --dot: #33262F; --card: #30252E; --ink: #F8EAF0; --muted: #BBA3B2; --line: #45363F;
+  --momo: #FF9DB4; --momo-deep: #FF8FAB; --momo-soft: #4A2C39;
+  --matcha: #77D2A0; --matcha-soft: #23392D; --mikan: #FFA178; --mikan-soft: #45302A;
+  --sora: #9BBBFF; --sora-soft: #283048; --kinako: #F5CD6A; --kinako-soft: #413720;
+  --rice: #FFF8F2; --face: #45343F; --nori: #1B2420;
+  --shadow: 0 2px 0 rgba(0,0,0,.25), 0 14px 30px -20px rgba(0,0,0,.6);
+  color-scheme: dark;
 }
 html, body { min-height: 100%; }
-body { background: var(--paper); color: var(--ink); font-family: var(--ui); font-size: 16px; line-height: 1.55; word-break: keep-all; -webkit-tap-highlight-color: transparent; }
-.app { max-width: 520px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-section { display: flex; flex-direction: column; gap: 18px; }
-h1 { font-size: 30px; line-height: 1.2; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-h2 { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); margin: 6px 0 -6px; }
+body {
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px);
+  background-size: 22px 22px;
+  color: var(--ink); font-family: var(--ui); font-size: 16px; line-height: 1.6; word-break: keep-all;
+  -webkit-tap-highlight-color: transparent;
+}
+.app { max-width: 500px; margin: 0 auto; padding-block: 18px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+section { display: flex; flex-direction: column; gap: 16px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: 32px; line-height: 1.15; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 19px; margin: 10px 0 -4px; display: flex; align-items: center; gap: 8px; }
+h2::before { content: ""; width: 10px; height: 10px; border-radius: 4px; background: var(--momo); transform: rotate(45deg); }
 p { margin: 0; }
-.eyebrow { font-size: 13px; color: var(--ai); font-weight: 500; letter-spacing: 0.04em; }
-.lede { color: var(--muted); }
-.jp { font-family: var(--jp); font-weight: 600; }
+.jp { font-family: var(--jp); font-weight: 700; }
 ruby { ruby-position: over; }
-rt { font-family: var(--jp); font-weight: 600; font-size: 0.42em; color: var(--ai); letter-spacing: 0; }
+rt { font-family: var(--jp); font-weight: 700; font-size: 0.42em; color: var(--momo-deep); letter-spacing: 0.02em; }
 .brackets rt::before { content: "("; }
 .brackets rt::after { content: ")"; }
-.no-furi rt { visibility: hidden; }
-button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible, input:focus-visible + .knob, summary:focus-visible { outline: 3px solid var(--ai); outline-offset: 2px; }
-.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); }
+button { font: inherit; color: inherit; cursor: pointer; -webkit-user-select: none; user-select: none; }
+button:focus-visible, input:focus-visible + .knob, summary:focus-visible { outline: 3px solid var(--sora); outline-offset: 3px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.card { background: var(--card); border-radius: 26px; box-shadow: var(--shadow); }
+.press { transition: transform .12s ease; }
+.press:active { transform: scale(.96); }
 
-/* hero: today's word as a vocabulary card with binder holes */
-.today { position: relative; padding: 22px 20px 18px 44px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 0 var(--line), 0 10px 24px -18px rgba(20,30,60,.35); }
-.today::before { content: ""; position: absolute; left: 16px; top: 22px; width: 12px; height: 12px; border-radius: 50%; background: var(--paper); border: 1px solid var(--line); box-shadow: 0 34px 0 -1px var(--paper), 0 34px 0 0 var(--line); }
-.today-label { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
-.today-word { font-size: clamp(44px, 13vw, 60px); line-height: 1.5; min-height: 1.5em; }
-.today-ko { font-size: 18px; font-weight: 500; }
-.icon-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
-.icon-btn svg { width: 18px; height: 18px; }
+/* mascot */
+.mascot { display: block; flex: none; overflow: visible; }
+.mascot .rice { fill: var(--rice); stroke: var(--face); stroke-width: 2.6; stroke-linejoin: round; }
+.mascot .nori { fill: var(--nori); }
+.mascot .eye { fill: var(--face); }
+.mascot .line { fill: none; stroke: var(--face); stroke-width: 2.6; stroke-linecap: round; }
+.mascot .mouth-fill { fill: var(--momo-deep); stroke: var(--face); stroke-width: 2; stroke-linejoin: round; }
+.mascot .cheek { fill: var(--momo); opacity: .55; }
+.mascot .tear { fill: var(--sora); }
+.mascot .f-happy, .mascot .f-sad { display: none; }
+.mascot[data-face="happy"] .f-smile, .mascot[data-face="sad"] .f-smile { display: none; }
+.mascot[data-face="happy"] .f-happy, .mascot[data-face="sad"] .f-sad { display: inline; }
+.bob { animation: bob 3.2s ease-in-out infinite; transform-origin: 50% 90%; }
+.mascot.jump { animation: jump .55s cubic-bezier(.3,1.6,.5,1); }
+.mascot.shake { animation: shake .45s ease; }
+
+/* home hero */
+.hero { display: flex; align-items: flex-end; gap: 14px; }
+.hero-text { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding-bottom: 6px; }
+.badge { align-self: flex-start; font-size: 12.5px; font-weight: 700; color: var(--momo-deep); background: var(--momo-soft); padding: 3px 10px; border-radius: 999px; }
+.lede { color: var(--muted); font-size: 15px; }
+
+.today { position: relative; padding: 18px 20px 18px; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.today::after { content: ""; position: absolute; right: -26px; top: -26px; width: 92px; height: 92px; border-radius: 50%; background: var(--kinako-soft); }
+.tag { position: relative; z-index: 1; align-self: flex-start; font-size: 12.5px; font-weight: 700; color: var(--ink); background: var(--kinako); padding: 3px 12px; border-radius: 999px; transform: rotate(-3deg); }
+.today-word { position: relative; z-index: 1; font-size: clamp(46px, 14vw, 62px); line-height: 1.45; text-align: center; margin-top: 4px; }
+.today-ko { text-align: center; font-family: var(--display); font-size: 20px; color: var(--muted); }
+.today .row { justify-content: center; margin-top: 10px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 0; background: var(--momo-soft); color: var(--momo-deep); border-radius: 999px; padding: 8px 16px; font-size: 14.5px; font-weight: 700; }
+.pill.alt { background: var(--sora-soft); color: var(--ink); }
+.pill svg { width: 18px; height: 18px; }
 
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.stats > div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.stats b { font-size: 24px; font-variant-numeric: tabular-nums; line-height: 1.2; }
-.stats span { font-size: 12px; color: var(--muted); }
-.meter { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
-.meter i { display: block; height: 100%; width: 0; background: var(--ai); border-radius: 3px; transition: width .4s; }
+.stat { border-radius: 20px; padding: 12px 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 0; min-width: 0; }
+.stat b { font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12.5px; color: var(--ink); opacity: .75; }
+.s1 { background: var(--matcha-soft); } .s2 { background: var(--mikan-soft); } .s3 { background: var(--kinako-soft); }
+.meter-wrap { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.meter { flex: 1; height: 12px; border-radius: 6px; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; border-radius: 6px; background: repeating-linear-gradient(-45deg, var(--matcha) 0 8px, color-mix(in srgb, var(--matcha) 80%, var(--card)) 8px 16px); transition: width .5s; }
 
-.modes { display: grid; gap: 8px; }
-.mode { text-align: left; display: grid; grid-template-columns: 22px 1fr; gap: 2px 12px; align-items: start; background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; }
-.mode .dot { grid-row: span 2; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); margin-top: 3px; }
-.mode strong { font-weight: 700; }
-.mode small { color: var(--muted); font-size: 13px; }
-.mode[aria-checked="true"] { border-color: var(--ai); background: var(--ai-soft); }
-.mode[aria-checked="true"] .dot { border: 5px solid var(--ai); }
+.modes { display: grid; gap: 10px; }
+.mode { text-align: left; display: flex; align-items: center; gap: 14px; background: var(--card); border: 2.5px solid transparent; border-radius: 22px; padding: 12px 14px; box-shadow: var(--shadow); }
+.mode .ic { flex: none; width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; font-size: 24px; }
+.mode .ic.jp { background: var(--momo-soft); color: var(--momo-deep); }
+.mode .ic.ko { background: var(--sora-soft); color: var(--sora); font-family: var(--display); }
+.mode .ic.kanji { background: var(--kinako-soft); color: var(--ink); }
+.mode .tx { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.mode strong { font-family: var(--display); font-weight: 400; font-size: 18px; }
+.mode small { color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.mode .check { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2.5px solid var(--line); display: grid; place-items: center; }
+.mode[aria-checked="true"] { border-color: var(--momo); }
+.mode[aria-checked="true"] .check { background: var(--momo); border-color: var(--momo); }
+.mode[aria-checked="true"] .check::after { content: ""; width: 9px; height: 5px; border: solid var(--card); border-width: 0 0 2.5px 2.5px; transform: translateY(-1px) rotate(-45deg); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
-.chip[aria-pressed="true"] { border-color: var(--ai); background: var(--ai); color: var(--card); }
+.chip { border: 0; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--line); border-radius: 999px; padding: 7px 14px; font-size: 14.5px; }
+.chip .n { font-size: 12px; color: var(--muted); margin-left: 2px; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); box-shadow: none; }
+.chip[aria-pressed="true"] .n { color: inherit; opacity: .7; }
 
-.primary, .secondary { border-radius: 12px; padding: 14px 18px; font-weight: 700; font-size: 17px; width: 100%; }
-.primary { background: var(--ink); color: var(--paper); border: 0; }
-.secondary { background: transparent; border: 1.5px solid var(--shu); color: var(--shu); }
-.primary:active, .secondary:active, .opt:active { transform: translateY(1px); }
+.primary, .secondary { border: 0; border-radius: 20px; padding: 15px 18px; font-family: var(--display); font-size: 20px; width: 100%; }
+.primary { background: var(--momo); color: #FFFFFF; box-shadow: 0 5px 0 var(--momo-deep); text-shadow: 0 1px 0 rgba(0,0,0,.08); }
+.primary:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--momo-deep); }
+.secondary { background: var(--mikan-soft); color: var(--mikan); box-shadow: inset 0 0 0 2px var(--mikan); }
+.secondary:active { transform: scale(.98); }
 
-.settings { display: grid; gap: 4px; }
-.switch { display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer; }
+.settings { display: grid; gap: 2px; background: var(--card); border-radius: 22px; padding: 6px 16px; box-shadow: var(--shadow); }
+.switch { display: flex; align-items: center; gap: 12px; padding: 10px 0; cursor: pointer; }
+.switch + .switch { border-top: 1.5px dashed var(--line); }
 .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.switch .knob { flex: none; width: 42px; height: 24px; border-radius: 12px; background: var(--line); position: relative; transition: background .2s; }
-.switch .knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--card); transition: transform .2s; }
-.switch input:checked + .knob { background: var(--ai); }
+.switch .knob { flex: none; width: 46px; height: 28px; border-radius: 14px; background: var(--line); position: relative; transition: background .2s; }
+.switch .knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s cubic-bezier(.3,1.5,.6,1); }
+.switch input:checked + .knob { background: var(--matcha); }
 .switch input:checked + .knob::after { transform: translateX(18px); }
-.switch .ex { color: var(--muted); font-size: 13px; }
+.switch .ex { display: block; color: var(--muted); font-size: 13px; }
 
-details.list { border-top: 1px solid var(--line); padding-top: 12px; }
-details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
-.wl-group h3 { font-size: 13px; color: var(--muted); margin: 16px 0 4px; letter-spacing: 0.06em; }
+details.list { background: var(--card); border-radius: 22px; padding: 4px 16px; box-shadow: var(--shadow); }
+details.list summary { cursor: pointer; font-family: var(--display); font-size: 18px; padding: 12px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+details.list summary::-webkit-details-marker { display: none; }
+details.list summary::after { content: "+"; width: 28px; height: 28px; border-radius: 50%; background: var(--momo-soft); color: var(--momo-deep); display: grid; place-items: center; font-size: 20px; line-height: 1; transition: transform .2s; }
+details.list[open] summary::after { transform: rotate(45deg); }
+.wl-group h3 { font-family: var(--display); font-weight: 400; font-size: 15px; color: var(--momo-deep); margin: 14px 0 2px; }
 .wordlist { list-style: none; margin: 0; padding: 0; }
-.wordlist li { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.wordlist li { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1.5px dashed var(--line); }
+.wordlist li:last-child { border-bottom: 0; }
 .wordlist .w { font-size: 24px; line-height: 1.6; }
-.wordlist .k { color: var(--muted); font-size: 14px; text-align: right; padding-bottom: 6px; }
+.wordlist .k { color: var(--muted); font-size: 14px; text-align: right; padding-bottom: 7px; }
 .pips { display: inline-flex; gap: 3px; margin-left: 8px; vertical-align: middle; }
-.pips i { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
-.pips i.on { background: var(--ai); }
-.foot { font-size: 13px; color: var(--muted); }
+.pips i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.pips i.on { background: var(--matcha); }
+.foot { font-size: 13px; color: var(--muted); text-align: center; padding: 0 8px; }
 
 /* play */
 .hud { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.ghost { background: none; border: 0; color: var(--muted); padding: 6px 0; font-size: 14px; }
-.hud-num { font-variant-numeric: tabular-nums; font-weight: 500; }
-.hud-right { display: flex; gap: 10px; align-items: center; font-variant-numeric: tabular-nums; }
-.combo { font-size: 13px; font-weight: 700; color: var(--shu); }
-.combo.pop { animation: pop .35s ease; }
-.score { font-weight: 700; font-size: 18px; min-width: 3ch; text-align: right; }
-.progress { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: -8px; }
-.progress i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .3s; }
+.ghost { background: var(--card); border: 0; color: var(--muted); padding: 7px 14px; border-radius: 999px; font-size: 14px; box-shadow: inset 0 0 0 1.5px var(--line); }
+.hud-right { display: flex; gap: 8px; align-items: center; }
+.combo { font-family: var(--display); font-size: 15px; color: var(--card); background: var(--mikan); padding: 2px 10px; border-radius: 999px; }
+.combo:empty { display: none; }
+.combo.pop { animation: pop .4s ease; }
+.score { font-family: var(--display); font-size: 20px; background: var(--kinako-soft); padding: 2px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.track { display: flex; gap: 5px; }
+.track i { flex: 1; height: 8px; border-radius: 4px; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--line); }
+.track i.ok { background: var(--matcha); box-shadow: none; }
+.track i.ng { background: var(--mikan); box-shadow: none; }
+.track i.now { background: var(--momo); box-shadow: none; }
 
-.qcard { position: relative; min-height: 200px; padding: 18px 18px 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; overflow: hidden; }
-.ask { position: absolute; top: 14px; left: 18px; font-size: 13px; color: var(--muted); }
-.prompt { font-size: clamp(46px, 15vw, 72px); line-height: 1.5; padding-top: 18px; overflow-wrap: anywhere; }
-.prompt.ko { font-family: var(--ui); font-weight: 700; font-size: clamp(30px, 9vw, 40px); line-height: 1.3; }
-.mark { position: absolute; inset: 0; margin: auto; width: 82%; max-width: 260px; height: auto; aspect-ratio: 1; pointer-events: none; opacity: 0; }
-.mark circle, .mark path { fill: none; stroke: var(--shu); stroke-width: 5; stroke-linecap: round; }
-.mark.ok, .mark.ng { opacity: .85; }
-.mark.ok circle { stroke-dasharray: 290; stroke-dashoffset: 290; animation: draw .45s ease-out forwards; }
-.mark.ok path { display: none; }
-.mark.ng circle { display: none; }
+.qcard { position: relative; min-height: 210px; padding: 20px 18px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+.ask { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 13px; color: var(--momo-deep); background: var(--momo-soft); padding: 3px 12px; border-radius: 999px; font-weight: 700; }
+.prompt { font-size: clamp(48px, 15vw, 74px); line-height: 1.45; padding-top: 22px; overflow-wrap: anywhere; position: relative; z-index: 1; }
+.prompt.ko { font-family: var(--display); font-size: clamp(32px, 9vw, 42px); line-height: 1.3; }
+.mark { position: absolute; inset: 0; margin: auto; width: 76%; max-width: 230px; height: auto; aspect-ratio: 1; pointer-events: none; opacity: 0; }
+.mark circle, .mark path { fill: none; stroke-width: 6; stroke-linecap: round; }
+.mark circle { stroke: var(--momo); }
+.mark path { stroke: var(--mikan); }
+.mark.ok { opacity: .7; }
+.mark.ng { opacity: .35; }
+.mark.ok circle { stroke-dasharray: 300; stroke-dashoffset: 300; animation: draw .5s ease-out forwards; }
+.mark.ok path, .mark.ng circle { display: none; }
 .mark.ng path { stroke-dasharray: 140; stroke-dashoffset: 140; animation: draw .35s ease-out forwards; }
+.heart { position: absolute; left: 50%; top: 50%; font-size: 20px; color: var(--momo); pointer-events: none; animation: burst .9s ease-out forwards; z-index: 2; }
 
 .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.opt { position: relative; min-height: 76px; background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 10px; font-size: 17px; font-weight: 500; line-height: 1.35; display: flex; align-items: center; justify-content: center; text-align: center; min-width: 0; overflow-wrap: anywhere; }
+.opt { position: relative; min-height: 80px; background: var(--card); border: 0; box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); border-radius: 20px; padding: 12px 10px; font-size: 17px; line-height: 1.35; display: flex; align-items: center; justify-content: center; text-align: center; min-width: 0; overflow-wrap: anywhere; transition: transform .12s, box-shadow .12s; }
 .opt .jp { font-size: 26px; line-height: 1.55; }
-.opt .num { position: absolute; top: 6px; left: 9px; font-size: 11px; color: var(--muted); font-family: var(--ui); }
-@media (hover: hover) { .opt:not(:disabled):hover { border-color: var(--ai); } }
-.opt.right { border-color: var(--good); background: var(--good-soft); }
-.opt.wrong { border-color: var(--shu); background: var(--shu-soft); }
-.opt.dim { opacity: .45; }
+.opt .num { position: absolute; top: 7px; left: 10px; width: 18px; height: 18px; border-radius: 50%; background: var(--paper); font-size: 11px; color: var(--muted); display: grid; place-items: center; font-family: var(--ui); }
+@media (hover: hover) { .opt:not(:disabled):hover { box-shadow: inset 0 0 0 2px var(--momo), 0 4px 0 var(--momo-soft); } }
+.opt:not(:disabled):active { transform: translateY(3px); box-shadow: inset 0 0 0 2px var(--line), 0 1px 0 var(--line); }
+.opt.right { background: var(--matcha-soft); box-shadow: inset 0 0 0 2.5px var(--matcha), 0 4px 0 var(--matcha); }
+.opt.wrong { background: var(--mikan-soft); box-shadow: inset 0 0 0 2.5px var(--mikan), 0 4px 0 var(--mikan); animation: shake .4s ease; }
+.opt.dim { opacity: .4; }
 .opt:disabled { cursor: default; }
 
-.feedback { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; animation: rise .25s ease; }
-.fb-head { font-weight: 700; }
-.fb-head.ok { color: var(--good); }
-.fb-head.ng { color: var(--shu); }
-.fb-word { font-size: 34px; line-height: 1.6; }
-.fb-meta { color: var(--muted); }
-.fb-meta b { color: var(--ink); font-weight: 500; }
-.feedback .primary { width: auto; flex: 1; }
+.feedback { display: flex; flex-direction: column; gap: 12px; animation: rise .3s cubic-bezier(.3,1.4,.6,1); }
+.coach { display: flex; align-items: flex-start; gap: 10px; }
+.bubble { position: relative; flex: 1; min-width: 0; background: var(--card); border-radius: 20px; padding: 12px 16px; box-shadow: var(--shadow); }
+.bubble::before { content: ""; position: absolute; left: -8px; top: 22px; width: 16px; height: 16px; background: var(--card); transform: rotate(45deg); border-radius: 3px; }
+.fb-head { font-family: var(--display); font-size: 18px; position: relative; }
+.fb-head.ok { color: var(--matcha); }
+.fb-head.ng { color: var(--mikan); }
+.fb-word { font-size: 32px; line-height: 1.55; position: relative; }
+.fb-meta { color: var(--muted); font-size: 14.5px; position: relative; }
+.fb-meta b { color: var(--ink); font-weight: 400; }
+.feedback .row .primary { width: auto; flex: 1; padding-block: 12px; }
 
-.result-title { font-size: 34px; }
-.empty { color: var(--muted); padding: 8px 0; }
+.result-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 22px 18px 20px; }
+.result-title { font-size: 30px; }
+.empty { color: var(--muted); padding: 10px 0; justify-content: center !important; }
+.r-list { background: var(--card); border-radius: 22px; padding: 4px 16px; box-shadow: var(--shadow); }
 
 @keyframes draw { to { stroke-dashoffset: 0; } }
-@keyframes pop { 50% { transform: scale(1.35); } }
-@keyframes rise { from { transform: translateY(6px); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition: none !important; } }
-@media (max-width: 360px) { .options { grid-template-columns: 1fr; } }
+@keyframes pop { 50% { transform: scale(1.3) rotate(-4deg); } }
+@keyframes rise { from { transform: translateY(10px); opacity: .2; } }
+@keyframes bob { 50% { transform: translateY(-4px) rotate(-3deg); } }
+@keyframes jump { 40% { transform: translateY(-14px) scale(1.06, .94); } 70% { transform: translateY(0) scale(.96, 1.04); } }
+@keyframes shake { 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+@keyframes burst { from { transform: translate(-50%, -50%) scale(.4); opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; } }
+@media (max-width: 350px) { .options { grid-template-columns: 1fr; } .stat b { font-size: 22px; } }
 </style>
+
+<template id="mascotTpl">
+  <svg class="mascot" viewBox="0 0 100 96" data-face="smile" aria-hidden="true">
+    <path class="rice" d="M50 6 C57 6 62 11 66 18 L91 60 C98 73 90 90 74 90 L26 90 C10 90 2 73 9 60 L34 18 C38 11 43 6 50 6 Z"/>
+    <path class="nori" d="M33 64 H67 V90 H33 Z"/>
+    <ellipse class="cheek" cx="31" cy="56" rx="6" ry="3.6"/>
+    <ellipse class="cheek" cx="69" cy="56" rx="6" ry="3.6"/>
+    <g class="f-smile">
+      <circle class="eye" cx="40" cy="47" r="3.4"/><circle class="eye" cx="60" cy="47" r="3.4"/>
+      <path class="line" d="M45 54 Q50 59 55 54"/>
+    </g>
+    <g class="f-happy">
+      <path class="line" d="M35 48 Q40 41 45 48"/><path class="line" d="M55 48 Q60 41 65 48"/>
+      <path class="mouth-fill" d="M43 53 Q50 53 57 53 Q56 62 50 62 Q44 62 43 53 Z"/>
+    </g>
+    <g class="f-sad">
+      <path class="line" d="M35 45 L44 48"/><path class="line" d="M65 45 L56 48"/>
+      <path class="line" d="M45 57 Q50 52 55 57"/>
+      <path class="tear" d="M66 51 Q69 56 66 59 Q63 56 66 51 Z"/>
+    </g>
+  </svg>
+</template>
 
 <div class="app" id="app">
   <section id="home">
-    <header style="display:flex;flex-direction:column;gap:8px">
-      <p class="eyebrow">JLPT N5 기초 단어 <span id="total"></span>개</p>
-      <h1>일본어 단어 카드</h1>
-      <p class="lede">한자 위에 읽는 법(후리가나)을 달아 두었어요. 문제를 풀면서 단어를 외워 보세요.</p>
+    <header class="hero">
+      <div class="hero-text">
+        <span class="badge">JLPT N5 기초 단어 <span id="total"></span>개</span>
+        <h1>일본어 단어 카드</h1>
+        <p class="lede">한자 위에 읽는 법을 달아 두었어요. 오니기리랑 같이 외워 봐요!</p>
+      </div>
+      <div class="mascot-slot bob" data-size="96" style="width:96px"></div>
     </header>
 
     <div class="today card">
-      <div class="today-label">오늘의 단어</div>
+      <span class="tag">오늘의 단어</span>
       <div class="today-word jp" lang="ja" id="todayWord"></div>
       <div class="today-ko" id="todayKo"></div>
-      <div class="row" style="margin-top:6px">
-        <button class="icon-btn speak-btn" id="todaySpeak" type="button" aria-label="발음 듣기"></button>
-        <button class="icon-btn" id="todayNext" type="button">다른 단어</button>
+      <div class="row">
+        <button class="pill press speak-btn" id="todaySpeak" type="button" aria-label="발음 듣기"></button>
+        <button class="pill alt press" id="todayNext" type="button">다른 단어</button>
       </div>
     </div>
 
     <div class="stats">
-      <div><b id="sMastered">0</b><span>외운 단어</span></div>
-      <div><b id="sReview">0</b><span>복습할 단어</span></div>
-      <div><b id="sBest">0</b><span>최고 점수</span></div>
+      <div class="stat s1"><b id="sMastered">0</b><span>외운 단어</span></div>
+      <div class="stat s2"><b id="sReview">0</b><span>복습할 단어</span></div>
+      <div class="stat s3"><b id="sBest">0</b><span>최고 점수</span></div>
     </div>
-    <div class="meter" aria-hidden="true"><i id="masterBar"></i></div>
+    <div class="meter-wrap"><div class="meter" aria-hidden="true"><i id="masterBar"></i></div><span id="masterPct">0%</span></div>
 
     <h2>게임 방식</h2>
     <div class="modes" id="modes" role="radiogroup" aria-label="게임 방식"></div>
@@ -190,7 +294,7 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
     <h2>단어 범위</h2>
     <div class="chips" id="chips"></div>
 
-    <div style="display:grid;gap:10px">
+    <div style="display:grid;gap:12px;margin-top:6px">
       <button class="primary" id="start" type="button">시작하기 · 10문제</button>
       <button class="secondary" id="startReview" type="button" hidden></button>
     </div>
@@ -211,44 +315,51 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
 
   <section id="play" hidden>
     <div class="hud">
-      <button class="ghost" id="quit" type="button">← 그만하기</button>
-      <span class="hud-num" id="qNum">1 / 10</span>
+      <button class="ghost press" id="quit" type="button">그만하기</button>
       <div class="hud-right"><span class="combo" id="combo"></span><span class="score" id="score">0</span></div>
     </div>
-    <div class="progress"><i id="qBar"></i></div>
+    <div class="track" id="track" aria-label="진행"></div>
     <div class="qcard card">
       <p class="ask" id="ask"></p>
       <div class="prompt" id="prompt"></div>
       <svg class="mark" id="mark" viewBox="0 0 100 100" aria-hidden="true">
         <circle cx="50" cy="50" r="44" transform="rotate(-100 50 50)"></circle>
-        <path d="M20 20 L80 80 M80 20 L20 80"></path>
+        <path d="M24 24 L76 76 M76 24 L24 76"></path>
       </svg>
     </div>
     <div class="options" id="options"></div>
-    <div class="feedback card" id="feedback" hidden>
-      <div class="fb-head" id="fbHead"></div>
-      <div class="fb-word jp" lang="ja" id="fbWord"></div>
-      <div class="fb-meta">읽기 <b class="jp" lang="ja" id="fbReading"></b> · 뜻 <b id="fbKo"></b></div>
+    <div class="feedback" id="feedback" hidden>
+      <div class="coach">
+        <div class="mascot-slot" id="coachMascot" data-size="64" style="width:64px"></div>
+        <div class="bubble">
+          <div class="fb-head" id="fbHead"></div>
+          <div class="fb-word jp" lang="ja" id="fbWord"></div>
+          <div class="fb-meta">읽기 <b class="jp" lang="ja" id="fbReading"></b> · 뜻 <b id="fbKo"></b></div>
+        </div>
+      </div>
       <div class="row">
-        <button class="icon-btn speak-btn" id="fbSpeak" type="button" aria-label="발음 듣기"></button>
+        <button class="pill press speak-btn" id="fbSpeak" type="button" aria-label="발음 듣기"></button>
         <button class="primary" id="next" type="button">다음</button>
       </div>
     </div>
   </section>
 
   <section id="result" hidden>
-    <p class="eyebrow" id="rEyebrow">결과</p>
-    <h1 class="result-title" id="rTitle"></h1>
+    <div class="result-hero card">
+      <div class="mascot-slot" id="resultMascot" data-size="110" style="width:110px"></div>
+      <span class="badge" id="rEyebrow">결과</span>
+      <h1 class="result-title" id="rTitle"></h1>
+    </div>
     <div class="stats">
-      <div><b id="rScore">0</b><span>점수</span></div>
-      <div><b id="rCorrect">0</b><span>맞힌 문제</span></div>
-      <div><b id="rCombo">0</b><span>최고 연속</span></div>
+      <div class="stat s3"><b id="rScore">0</b><span>점수</span></div>
+      <div class="stat s1"><b id="rCorrect">0</b><span>맞힌 문제</span></div>
+      <div class="stat s2"><b id="rCombo">0</b><span>최고 연속</span></div>
     </div>
     <h2>이번에 틀린 단어</h2>
-    <ul class="wordlist" id="rWrong"></ul>
-    <div style="display:grid;gap:10px">
-      <button class="primary" id="again" type="button">한 번 더</button>
-      <button class="ghost" id="toHome" type="button" style="font-size:16px">처음으로</button>
+    <div class="r-list"><ul class="wordlist" id="rWrong"></ul></div>
+    <div style="display:grid;gap:12px;margin-top:6px">
+      <button class="primary" id="again" type="button">한 번 더!</button>
+      <button class="ghost press" id="toHome" type="button" style="justify-self:center;font-size:15px">처음으로</button>
     </div>
   </section>
 </div>
@@ -258,12 +369,12 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
 (function () {
   var CATS = [['all','전체'],['people','사람·가족'],['food','음식'],['place','장소·자연'],['time','시간·요일'],['number','숫자'],['thing','물건·동물'],['body','몸'],['verb','동사'],['adj','형용사']];
   var MODES = [
-    { id: 'meaning', label: '뜻 맞히기', desc: '일본어 단어를 보고 한국어 뜻을 골라요', ask: '이 단어의 뜻은?' },
-    { id: 'word', label: '단어 맞히기', desc: '한국어 뜻을 보고 일본어 단어를 골라요', ask: '이 뜻의 일본어는?' },
-    { id: 'reading', label: '한자 읽기 도전', desc: '후리가나를 가린 한자를 보고 읽는 법을 골라요', ask: '이 한자는 어떻게 읽을까?' }
+    { id: 'meaning', icon: '<span class="ic jp" lang="ja">あ</span>', label: '뜻 맞히기', desc: '일본어 단어를 보고 한국어 뜻을 골라요', ask: '이 단어의 뜻은?' },
+    { id: 'word', icon: '<span class="ic ko">가</span>', label: '단어 맞히기', desc: '한국어 뜻을 보고 일본어 단어를 골라요', ask: '이 뜻의 일본어는?' },
+    { id: 'reading', icon: '<span class="ic kanji jp" lang="ja">漢</span>', label: '한자 읽기 도전', desc: '후리가나를 가린 한자를 보고 읽는 법을 골라요', ask: '이 한자는 어떻게 읽을까?' }
   ];
   var ROUND = 10;
-  var SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>발음</span>';
+  var SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>발음</span>';
 
   // ---------- words ----------
   var RX = /\{([^|}]+)\|([^}]+)\}/g;
@@ -323,6 +434,29 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
     $('optSound').checked = !!settings.sound;
   }
 
+  // ---------- mascot ----------
+  Array.prototype.forEach.call(document.querySelectorAll('.mascot-slot'), function (slot) {
+    var svg = $('mascotTpl').content.firstElementChild.cloneNode(true);
+    svg.setAttribute('width', slot.dataset.size); svg.setAttribute('height', Math.round(slot.dataset.size * 0.96));
+    slot.appendChild(svg);
+  });
+  function face(slotId, f, anim) {
+    var svg = $(slotId).querySelector('svg');
+    svg.setAttribute('data-face', f);
+    svg.classList.remove('jump', 'shake'); void svg.getBoundingClientRect();
+    if (anim) svg.classList.add(anim);
+  }
+  function hearts() {
+    var box = document.querySelector('.qcard');
+    for (var i = 0; i < 7; i++) {
+      var h = document.createElement('span'); h.className = 'heart'; h.textContent = i % 2 ? '♥' : '✿';
+      var a = (Math.PI * 2 * i) / 7 + Math.random() * .5, d = 80 + Math.random() * 40;
+      h.style.setProperty('--dx', Math.cos(a) * d + 'px'); h.style.setProperty('--dy', Math.sin(a) * d * .7 + 'px');
+      h.style.color = i % 3 === 0 ? 'var(--kinako)' : i % 3 === 1 ? 'var(--momo)' : 'var(--sora)';
+      box.appendChild(h); setTimeout(h.remove.bind(h), 950);
+    }
+  }
+
   // ---------- speech ----------
   var canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
   function speak(w) {
@@ -346,16 +480,18 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
   function renderHome() {
     $('total').textContent = W.length;
     var m = W.filter(mastered).length, r = W.filter(needsReview);
+    var pct = W.length ? Math.round(m / W.length * 100) : 0;
     $('sMastered').textContent = m;
     $('sReview').textContent = r.length;
     $('sBest').textContent = settings.best || 0;
-    $('masterBar').style.width = (W.length ? (m / W.length * 100) : 0) + '%';
+    $('masterBar').style.width = pct + '%';
+    $('masterPct').textContent = pct + '%';
     $('modes').innerHTML = MODES.map(function (md) {
-      return '<button type="button" class="mode" role="radio" data-mode="' + md.id + '" aria-checked="' + (settings.mode === md.id) + '"><span class="dot"></span><strong>' + md.label + '</strong><small>' + md.desc + '</small></button>';
+      return '<button type="button" class="mode press" role="radio" data-mode="' + md.id + '" aria-checked="' + (settings.mode === md.id) + '">' + md.icon + '<span class="tx"><strong>' + md.label + '</strong><small>' + md.desc + '</small></span><span class="check"></span></button>';
     }).join('');
     $('chips').innerHTML = CATS.map(function (c) {
       var n = c[0] === 'all' ? W.length : W.filter(function (w) { return w.cat === c[0]; }).length;
-      return '<button type="button" class="chip" data-cat="' + c[0] + '" aria-pressed="' + (settings.cat === c[0]) + '">' + c[1] + ' <span style="opacity:.6">' + n + '</span></button>';
+      return '<button type="button" class="chip press" data-cat="' + c[0] + '" aria-pressed="' + (settings.cat === c[0]) + '">' + c[1] + ' <span class="n">' + n + '</span></button>';
     }).join('');
     var rv = $('startReview');
     rv.hidden = r.length === 0;
@@ -391,17 +527,21 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
     var pool = review ? W.filter(needsReview) : poolFor(settings.cat, mode);
     if (review && mode === 'reading') { pool = pool.filter(function (w) { return w.kanji; }); if (!pool.length) { mode = 'meaning'; pool = W.filter(needsReview); } }
     if (!pool.length) return;
-    G = { mode: mode, review: review, qs: pick(pool, Math.min(ROUND, pool.length)), i: 0, score: 0, combo: 0, best: 0, correct: 0, wrong: [] };
+    G = { mode: mode, review: review, qs: pick(pool, Math.min(ROUND, pool.length)), i: 0, score: 0, combo: 0, best: 0, correct: 0, wrong: [], marks: [] };
     show('play'); renderQ();
+  }
+  function renderTrack() {
+    var h = '';
+    for (var i = 0; i < G.qs.length; i++) h += '<i class="' + (G.marks[i] || (i === G.i ? 'now' : '')) + '"></i>';
+    $('track').innerHTML = h;
   }
   function renderQ() {
     var w = G.qs[G.i], md = MODES.filter(function (m) { return m.id === G.mode; })[0];
     G.opts = optionsFor(w, G.mode); G.answered = false;
-    $('qNum').textContent = (G.i + 1) + ' / ' + G.qs.length;
-    $('qBar').style.width = (G.i / G.qs.length * 100) + '%';
-    $('score').textContent = G.score;
+    renderTrack();
+    $('score').textContent = G.score + '점';
     $('combo').textContent = G.combo >= 2 ? G.combo + '연속!' : '';
-    $('ask').textContent = md.ask;
+    $('ask').textContent = (G.i + 1) + '/' + G.qs.length + ' · ' + md.ask;
     var pr = $('prompt');
     pr.className = 'prompt' + (G.mode === 'word' ? ' ko' : '');
     pr.innerHTML = G.mode === 'meaning' ? jpSpan(w) : G.mode === 'word' ? w.ko : jpSpan(w, false);
@@ -412,13 +552,16 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
     }).join('');
     $('feedback').hidden = true;
   }
+  var CHEER = ['はなまる! 정답이에요', '대단해요! 정답!', 'すごい! 맞았어요', '좋아요, 정답!'];
   function answer(i) {
     if (!G || G.answered || !G.opts[i]) return;
     G.answered = true;
-    var w = G.qs[G.i], ok = G.opts[i] === w, p = P(w);
-    if (ok) { p.c++; p.s++; G.combo++; G.correct++; G.best = Math.max(G.best, G.combo); G.score += 10 * Math.min(G.combo, 5); }
+    var w = G.qs[G.i], ok = G.opts[i] === w, p = P(w), gain = 0;
+    if (ok) { p.c++; p.s++; G.combo++; G.correct++; G.best = Math.max(G.best, G.combo); gain = 10 * Math.min(G.combo, 5); G.score += gain; }
     else { p.w++; p.s = 0; G.combo = 0; G.wrong.push(w); }
     progress[w.id] = p; save('jw-progress', progress);
+    G.marks[G.i] = ok ? 'ok' : 'ng';
+    renderTrack();
 
     var btns = $('options').children;
     for (var k = 0; k < btns.length; k++) {
@@ -428,17 +571,19 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
       else btns[k].classList.add('dim');
     }
     var mark = $('mark'); mark.setAttribute('class', 'mark'); void mark.getBoundingClientRect(); mark.setAttribute('class', 'mark ' + (ok ? 'ok' : 'ng'));
+    if (ok) hearts();
     if (G.mode === 'reading') $('prompt').innerHTML = jpSpan(w);
-    $('score').textContent = G.score;
+    $('score').textContent = G.score + '점';
     var c = $('combo'); c.textContent = G.combo >= 2 ? G.combo + '연속!' : ''; c.classList.remove('pop'); void c.offsetWidth; if (G.combo >= 2) c.classList.add('pop');
 
     var head = $('fbHead');
     head.className = 'fb-head ' + (ok ? 'ok' : 'ng');
-    head.textContent = ok ? (G.combo >= 3 ? '정답! ' + G.combo + '연속 +' + 10 * Math.min(G.combo, 5) + '점' : '정답! +' + 10 * Math.min(G.combo, 5) + '점') : '아쉬워요. 정답은 이거예요.';
+    head.textContent = ok ? (G.combo >= 3 ? G.combo + '연속 정답! +' + gain + '점' : CHEER[Math.floor(Math.random() * CHEER.length)] + ' +' + gain + '점') : '괜찮아요, 이렇게 외워 봐요';
     $('fbWord').innerHTML = jp(w);
     $('fbReading').textContent = w.reading;
     $('fbKo').textContent = w.ko;
     $('feedback').hidden = false;
+    face('coachMascot', ok ? 'happy' : 'sad', ok ? 'jump' : 'shake');
     $('next').textContent = G.i + 1 >= G.qs.length ? '결과 보기' : '다음';
     $('next').focus({ preventScroll: true });
     if (settings.sound) speak(w);
@@ -449,14 +594,15 @@ details.list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
     if (newBest) { settings.best = G.score; save('jw-settings', settings); }
     var rate = G.correct / G.qs.length;
     $('rEyebrow').textContent = newBest && G.score > 0 ? '최고 점수 갱신!' : (G.review ? '복습 결과' : '결과');
-    $('rTitle').textContent = rate === 1 ? '전부 맞혔어요!' : rate >= 0.8 ? '아주 잘했어요' : rate >= 0.5 ? '좋아요, 조금만 더!' : '틀린 단어부터 다시 봐요';
+    $('rTitle').textContent = rate === 1 ? '전부 맞혔어요! はなまる!' : rate >= 0.8 ? '아주 잘했어요' : rate >= 0.5 ? '좋아요, 조금만 더!' : '틀린 단어부터 다시 봐요';
     $('rScore').textContent = G.score;
     $('rCorrect').textContent = G.correct + '/' + G.qs.length;
     $('rCombo').textContent = G.best;
     $('rWrong').innerHTML = G.wrong.length ? G.wrong.map(function (w) {
       return '<li><span class="w">' + jpSpan(w) + '</span><span class="k">' + w.ko + '</span></li>';
-    }).join('') : '<li class="empty">없어요. 완벽해요!</li>';
+    }).join('') : '<li class="empty">하나도 없어요. 완벽해요!</li>';
     show('result');
+    face('resultMascot', rate >= 0.5 ? 'happy' : 'sad', rate >= 0.5 ? 'jump' : 'shake');
   }
 
   $('options').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (b) answer(+b.dataset.i); });
