@@ -101,10 +101,32 @@ def encrypt(html, password):
     return {"v": 1, "iter": ITERATIONS, "salt": b(salt), "iv": b(iv), "ct": b(ct)}
 
 
+def build_artifact(out, data):
+    """Claude 아티팩트(공유 링크)용 잠금 페이지.
+    아티팩트는 문서 틀(<html>, <head>)을 스스로 씌우고, 오프라인 실행 파일(sw.js)·앱 설치 정보는 쓸 수 없다.
+    그래서 잠금 화면에서 그 부분만 빼고, 암호화된 게임은 app.json 으로 함께 올린다."""
+    page = (TEMPLATE / "index.html").read_text(encoding="utf-8")
+    for pat in [r"<!doctype html>\s*", r"<html[^>]*>\s*", r"</?head>\s*", r"</?body>\s*", r"</html>\s*",
+                r'<meta charset[^>]*>\s*', r'<meta name="viewport"[^>]*>\s*',
+                r'<link rel="(manifest|icon|apple-touch-icon)"[^>]*>\s*',
+                r"\s*if \('serviceWorker' in navigator\)[^\n]*"]:
+        page = re.sub(pat, "", page, flags=re.I)
+    page = page.replace("fetch('app.enc'", "fetch('app.json'")
+    # 아티팩트는 body 배경을 직접 칠해야 하므로 html 높이 설정만 유지
+    if out.exists():
+        shutil.rmtree(out)
+    (out / "icons").mkdir(parents=True)
+    (out / "index.html").write_text(page, encoding="utf-8")
+    (out / "app.json").write_text(data, encoding="utf-8")
+    shutil.copy(TEMPLATE / "icons" / "icon-192.png", out / "icons" / "icon-192.png")
+    print(f"Claude 공유용: {out}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "pwa"))
     ap.add_argument("--plain", help="(검사용) 암호화 전 HTML 을 이 경로에 저장")
+    ap.add_argument("--artifact", help="Claude 공유 링크용 잠긴 페이지를 이 폴더에 만든다 (GitHub 없이 링크로 공유)")
     args = ap.parse_args()
     out = Path(args.out)
 
@@ -122,6 +144,9 @@ def main():
     sw = out / "sw.js"
     sw.write_text(sw.read_text(encoding="utf-8").replace("__VERSION__", "jw-" + version), encoding="utf-8")
     (out / ".nojekyll").write_text("", encoding="utf-8")
+
+    if args.artifact:
+        build_artifact(Path(args.artifact), data)
 
     print(f"완료: {out}  (버전 jw-{version}, 게임 {len(html):,}자 → 암호화됨)")
     if created:
