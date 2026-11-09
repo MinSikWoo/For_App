@@ -94,6 +94,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / ".tmp" / "sjpt-locked"))
     ap.add_argument("--plain", help="(검사용) 암호화 전 HTML 을 이 경로에 저장")
+    ap.add_argument("--pages", help="GitHub Pages 용(녹음 가능) 잠긴 사이트를 이 폴더에도 만든다")
     args = ap.parse_args()
     out = Path(args.out)
 
@@ -101,9 +102,26 @@ def main():
     html = bundle()
     if args.plain:
         Path(args.plain).write_text(html, encoding="utf-8")
+    data = json.dumps(encrypt(html, password))
+    lock = LOCK.read_text(encoding="utf-8")
     out.mkdir(parents=True, exist_ok=True)
-    (out / "index.html").write_text(LOCK.read_text(encoding="utf-8"), encoding="utf-8")
-    (out / "app.json").write_text(json.dumps(encrypt(html, password)), encoding="utf-8")
+    (out / "index.html").write_text(lock, encoding="utf-8")
+    (out / "app.json").write_text(data, encoding="utf-8")
+
+    if args.pages:
+        # 아티팩트와 달리 GitHub Pages 는 문서 틀을 씌워 주지 않으므로 직접 감싼다.
+        pages = Path(args.pages)
+        pages.mkdir(parents=True, exist_ok=True)
+        page = ('<!doctype html>\n<html lang="ko">\n<head>\n'
+                '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+                '<meta name="theme-color" content="#c8364b">\n'
+                '<meta name="apple-mobile-web-app-capable" content="yes">\n'
+                '<meta name="apple-mobile-web-app-title" content="SJPT 연습">\n'
+                '</head>\n<body>\n' + lock + '\n</body>\n</html>\n')
+        (pages / "index.html").write_text(page, encoding="utf-8")
+        (pages / "app.json").write_text(data, encoding="utf-8")
+        (pages / ".nojekyll").write_text("", encoding="utf-8")
+        print(f"GitHub Pages 용: {pages}")
 
     version = hashlib.sha256(html.encode()).hexdigest()[:12]
     print(f"완료: {out}  (버전 {version}, 앱 {len(html):,}자 → 암호화됨)")
