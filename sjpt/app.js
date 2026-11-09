@@ -236,7 +236,7 @@
   /* ───────────── 화면 공통 ───────────── */
   const titleEl = document.getElementById('title');
   const backBtn = document.getElementById('backBtn');
-  backBtn.addEventListener('click', () => { location.hash = '#/'; });
+  backBtn.addEventListener('click', () => { location.hash = '#home'; });
   function setHeader(title, back = true) {
     titleEl.textContent = title;
     backBtn.hidden = !back;
@@ -289,12 +289,12 @@
         <div class="stat"><b>${Object.keys(db.ratings).length}/${QS.length}</b><span>풀어본 문제</span></div>
       </div>
       <div class="menu-grid">
-        <a class="tile hot" href="#/parts"><div class="ic">🎯</div><b>파트 연습</b><span>실전 타이머 + 녹음 + 모범답안</span></a>
-        <a class="tile" href="#/templates"><div class="ic">🧩</div><b>답변 틀</b><span>파트별 말하기 공식</span></a>
-        <a class="tile" href="#/cards"><div class="ic">🃏</div><b>문형 카드</b><span>오늘 복습 ${dueCards}장</span></a>
-        <a class="tile" href="#/mock"><div class="ic">📝</div><b>모의고사</b><span>26문항 실전 순서</span></a>
-        <a class="tile" href="#/weak"><div class="ic">🔁</div><b>약점 복습</b><span>🔺❌ ${weak}문항</span></a>
-        <a class="tile" href="#/records"><div class="ic">📊</div><b>내 기록 · 설정</b><span>파트별 점수, 음성 속도</span></a>
+        <a class="tile hot" href="#parts"><div class="ic">🎯</div><b>파트 연습</b><span>실전 타이머 + 녹음 + 모범답안</span></a>
+        <a class="tile" href="#templates"><div class="ic">🧩</div><b>답변 틀</b><span>파트별 말하기 공식</span></a>
+        <a class="tile" href="#cards"><div class="ic">🃏</div><b>문형 카드</b><span>오늘 복습 ${dueCards}장</span></a>
+        <a class="tile" href="#mock"><div class="ic">📝</div><b>모의고사</b><span>26문항 실전 순서</span></a>
+        <a class="tile" href="#weak"><div class="ic">🔁</div><b>약점 복습</b><span>🔺❌ ${weak}문항</span></a>
+        <a class="tile" href="#records"><div class="ic">📊</div><b>내 기록 · 설정</b><span>파트별 점수, 음성 속도</span></a>
       </div>
       <div class="card">
         <h2>📌 추천 공부 순서 (Lv.3~4)</h2>
@@ -330,7 +330,7 @@
       <p class="muted small">파트를 고르면 실제 시험과 같은 문항 수·시간으로 한 세트를 연습합니다. 못 했던(❌) 문제가 먼저 나와요.</p>
       ${PARTS.map((p) => {
         const pr = partProgress(p);
-        return `<a class="part-item" href="#/practice/${p.id}">
+        return `<a class="part-item" href="#practice-${p.id}">
           <div class="part-no">${p.id}</div>
           <div class="meta"><b>${p.ko} <span class="muted small">${p.jp}</span></b>
             <span>준비 ${p.prep}초 · 답변 ${p.ans}초 · ${pr.done}/${pr.total}문제${pr.score !== null ? ` · 점수 ${pr.score}%` : ''}</span>
@@ -365,7 +365,7 @@
             ${sentences(ex.model).map((s) => `<div class="model-line"><div class="jp">${jp(s)}</div><button class="say" data-say="${esc(s)}" aria-label="듣기">🔊</button></div>`).join('')}
             <div class="ko-block">${esc(ex.modelKo)}</div></div>
           </details>
-          <div style="margin-top:12px"><a class="btn" href="#/practice/${p.id}">이 파트 연습하기 ›</a></div>
+          <div style="margin-top:12px"><a class="btn" href="#practice-${p.id}">이 파트 연습하기 ›</a></div>
         </div>`;
       }).join('')}
     `);
@@ -398,7 +398,7 @@
       <div class="notice info">진행: 🔊 문제 듣기 → <b>준비 ${p.prep}초</b> → 삐 소리 후 <b>답변 ${p.ans}초 녹음</b> → 내 녹음·모범답안 비교 → 자가평가</div>
       <div class="stack">
         <button class="btn primary" id="go">🎙️ 연습 시작 (${p.count}문항)</button>
-        <a class="btn ghost" href="#/templates">답변 틀 자세히 보기</a>
+        <a class="btn ghost" href="#templates">답변 틀 자세히 보기</a>
       </div>
       <p class="small muted">처음 시작할 때 마이크 사용 허용을 물어봐요. 허용하지 않아도 타이머 연습은 할 수 있어요.</p>
     `);
@@ -409,7 +409,7 @@
     setHeader('약점 복습');
     const list = weakList();
     if (!list.length) {
-      render(`<div class="card"><h2>🎉 복습할 문제가 없어요</h2><p class="muted">파트 연습에서 🔺/❌로 평가한 문제가 여기에 모입니다.</p><a class="btn primary" href="#/parts">파트 연습하러 가기</a></div>`);
+      render(`<div class="card"><h2>🎉 복습할 문제가 없어요</h2><p class="muted">파트 연습에서 🔺/❌로 평가한 문제가 여기에 모입니다.</p><a class="btn primary" href="#parts">파트 연습하러 가기</a></div>`);
       return;
     }
     const queue = list.slice(0, 8);
@@ -456,7 +456,7 @@
   function stageHtml(q, i, total, title, micOk) {
     return `
       <div class="progress"><span class="chip">${esc(title)}</span><span class="muted small">${i + 1} / ${total}</span></div>
-      ${micOk ? '' : '<div class="notice">마이크를 사용할 수 없어 녹음 없이 진행합니다. (설정에서 마이크 허용 후 새로고침)</div>'}
+      ${micOk ? '' : '<div class="notice">이 화면에서는 마이크를 쓸 수 없어 녹음 없이 진행해요. 타이머에 맞춰 소리 내어 말하고, 모범답안과 비교해 보세요.</div>'}
       <div class="card">${questionHtml(q)}</div>
       <div class="timer-wrap">
         <div class="timer" id="timer"><svg viewBox="0 0 100 100"><circle class="bgc" cx="50" cy="50" r="45"/><circle class="fgc" id="ring" cx="50" cy="50" r="45"/></svg><div class="tnum" id="tnum">·</div></div>
@@ -585,8 +585,8 @@
       </div>
       <div class="stack">
         <button class="btn primary" id="again">한 세트 더</button>
-        <a class="btn" href="#/parts">다른 파트 고르기</a>
-        <a class="btn ghost" href="#/">홈으로</a>
+        <a class="btn" href="#parts">다른 파트 고르기</a>
+        <a class="btn ghost" href="#home">홈으로</a>
       </div>
     `);
     document.getElementById('again').addEventListener('click', () => { stopEverything(); onAgain(); });
@@ -682,7 +682,7 @@
           </div>
         </div>`;
       }).join('')}
-      <a class="btn" href="#/">홈으로</a>
+      <a class="btn" href="#home">홈으로</a>
     `);
     bindSay();
     const scoreEl = document.getElementById('mockScore');
@@ -733,7 +733,7 @@
           </div>
           <div class="stack">
             <button class="btn" id="more">랜덤으로 10장 더 보기</button>
-            <a class="btn ghost" href="#/">홈으로</a>
+            <a class="btn ghost" href="#home">홈으로</a>
           </div>`);
         document.getElementById('more').addEventListener('click', () => { queue = shuffle(PATS).slice(0, 10); extra = true; cur = 0; flipped = false; draw(); });
         return;
@@ -836,21 +836,26 @@
     app.querySelectorAll('[data-set]').forEach((el) => el.addEventListener('change', () => { db.settings[el.dataset.set] = el.checked; save(); }));
     document.getElementById('rate').addEventListener('change', (e) => { db.settings.rate = Number(e.target.value); save(); });
     document.getElementById('testVoice').addEventListener('click', () => TTS.speak('こんにちは。{一緒|いっしょ}に{日本語|にほんご}を{頑張|がんば}りましょう。'));
-    document.getElementById('reset').addEventListener('click', () => {
-      if (confirm('연습 기록, 카드 진도, 메모가 모두 지워집니다. 계속할까요?')) {
+    const resetBtn = document.getElementById('reset');
+    resetBtn.addEventListener('click', () => {
+      if (resetBtn.dataset.armed) {
         const s = db.settings; db = defaults(); db.settings = s; save(); viewRecords();
+        return;
       }
+      resetBtn.dataset.armed = '1';
+      resetBtn.textContent = '한 번 더 누르면 연습 기록·카드 진도·메모가 모두 지워져요';
+      resetBtn.style.color = 'var(--bad)';
     });
   }
 
   /* ───────────── 화면 이동 ───────────── */
   const routes = {
-    '': viewHome, parts: viewParts, practice: viewPracticeIntro, templates: viewTemplates,
+    '': viewHome, home: viewHome, parts: viewParts, practice: viewPracticeIntro, templates: viewTemplates,
     cards: viewCards, mock: viewMock, records: viewRecords, weak: viewWeak
   };
   function route() {
     stopEverything();
-    const [name, arg] = location.hash.replace(/^#\/?/, '').split('/');
+    const [name, arg] = location.hash.replace(/^#\/?/, '').split(/[/-]/);
     (routes[name] || viewHome)(arg);
     window.scrollTo(0, 0);
   }
