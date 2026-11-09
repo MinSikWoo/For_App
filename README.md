@@ -15,7 +15,7 @@ SJPT(일본어 말하기 시험) Lv.3~4 목표용 휴대폰 웹앱. 설치 없�
 
 - 문제 추가/수정: `sjpt/data/questions.js` (후리가나는 `{漢字|かんじ}`로 표기)
 - 문형 카드 추가/수정: `sjpt/data/patterns.js`
-- 기록은 각 기기 브라우저 안에만 저장되고, 녹음 파일은 저장하지 않습니다.
+- 기록과 녹음은 각 휴대폰 브라우저 안에만 저장됩니다 (문제마다 최근 녹음 5개, 🎧 녹음 보관함에서 일괄 삭제). 인터넷으로 올라가지 않습니다.
 - 마이크 녹음은 https 주소(예: GitHub Pages)에서만 동작합니다.
 
 ### 비밀번호 잠금 링크로 쓰기
@@ -27,3 +27,12 @@ python3 tools/build_locked_app.py     # .tmp/sjpt-locked/ 에 잠금 화면(inde
 - 비밀번호는 `.env` 의 `SJPT_PASSWORD` (GitHub에 안 올라감). 없으면 새로 만들어 저장하고 화면에 보여줌.
 - 만든 두 파일을 Claude 아티팩트로 올리면 링크로 열 수 있음. 앱을 고친 뒤엔 다시 빌드해서 같은 링크로 다시 올리기.
 - Claude 링크 안에서는 마이크가 막혀 녹음은 안 되고, 타이머·읽어주기·모범답안·카드·기록은 모두 동작.
+
+### GitHub Pages (녹음 가능, 추천)
+
+```
+python3 tools/build_locked_app.py --pages docs    # docs/ 에 잠긴 사이트 생성 → 커밋·푸시
+```
+
+- 저장소 Settings → Pages → Branch 에서 `docs/` 폴더가 있는 브랜치와 `/docs` 를 고르면 `https://minsikwoo.github.io/For_App/` 로 열림.
+- 앱을 고친 뒤엔 위 명령으로 다시 만들고 커밋·푸시하면 몇 분 뒤 반영됨.

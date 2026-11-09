@@ -279,3 +279,12 @@ textarea {
 .switch input:checked + span { background: var(--good); }
 .switch input:checked + span::before { transform: translateX(20px); }
 select { font: inherit; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+
+/* ── 녹음 보관 ── */
+.rec-row { padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.rec-row:last-child { border-bottom: 0; }
+.rec-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+.rec-meta span { color: var(--muted); }
+.rec-group summary { list-style: none; }
+.rec-group summary::-webkit-details-marker { display: none; }
+.rec-q { font-size: 16px; font-weight: 600; line-height: 1.9; margin-top: 4px; }

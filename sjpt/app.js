@@ -199,6 +199,72 @@
     }
   };
 
+  /* ───────────── 녹음 보관 (이 휴대폰 브라우저 안에만) ───────────── */
+  const KEEP = 5; // 문제마다 최근 녹음 몇 개까지 보관할지
+  const idbReq = (r) => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const idbDone = (t) => new Promise((res, rej) => { t.oncomplete = () => res(); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); });
+  const RecStore = {
+    dbp: null,
+    open() {
+      if (!this.dbp) {
+        this.dbp = new Promise((res, rej) => {
+          if (!window.indexedDB) return rej(new Error('no indexedDB'));
+          const r = indexedDB.open('sjpt-recordings', 1);
+          r.onupgradeneeded = () => { r.result.createObjectStore('recs', { keyPath: 'id', autoIncrement: true }).createIndex('q', 'q'); };
+          r.onsuccess = () => res(r.result);
+          r.onerror = () => rej(r.error);
+        });
+        this.dbp.catch(() => { this.dbp = null; });
+      }
+      return this.dbp;
+    },
+    async add(rec) {
+      const d = await this.open();
+      const t = d.transaction('recs', 'readwrite'); const done = idbDone(t);
+      const id = await idbReq(t.objectStore('recs').add(rec));
+      await done;
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+      const old = (await this.byQ(rec.q)).slice(KEEP);
+      if (old.length) {
+        const t2 = d.transaction('recs', 'readwrite'); const done2 = idbDone(t2);
+        old.forEach((x) => t2.objectStore('recs').delete(x.id));
+        await done2;
+      }
+      return id;
+    },
+    async byQ(q) {
+      const d = await this.open();
+      const list = await idbReq(d.transaction('recs').objectStore('recs').index('q').getAll(q));
+      return list.sort((a, b) => b.t - a.t);
+    },
+    async all() { const d = await this.open(); return idbReq(d.transaction('recs').objectStore('recs').getAll()); },
+    async setRating(id, r) {
+      const d = await this.open();
+      const t = d.transaction('recs', 'readwrite'); const done = idbDone(t);
+      const s = t.objectStore('recs'); const g = s.get(id);
+      g.onsuccess = () => { const rec = g.result; if (rec) { rec.r = r; s.put(rec); } };
+      await done;
+    },
+    async clear() {
+      const d = await this.open();
+      const t = d.transaction('recs', 'readwrite'); const done = idbDone(t);
+      t.objectStore('recs').clear();
+      await done;
+    }
+  };
+  async function saveRecording(q, run) {
+    if (!run.blob) return null;
+    try { return await RecStore.add({ q: q.id, p: q.part, t: Date.now(), sec: run.sec, r: null, blob: run.blob }); } catch (e) { return null; }
+  }
+  const RATE_EM = ['❌', '🔺', '⭕'];
+  const fmtTime = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  const fmtSize = (b) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))}KB` : `${(b / 1024 / 1024).toFixed(1)}MB`);
+  function recRowHtml(rec) {
+    const u = URL.createObjectURL(rec.blob); objectUrls.push(u);
+    return `<div class="rec-row"><div class="rec-meta"><b>${fmtTime(rec.t)}</b><span>${rec.r == null ? '평가 전' : RATE_EM[rec.r]} · ${rec.sec || '?'}초</span></div>
+      <audio controls preload="metadata" src="${u}"></audio></div>`;
+  }
+
   /* ───────────── 진행 제어 ───────────── */
   let token = 0;          // 화면을 떠나면 증가 → 진행 중인 타이머/녹음 중단
   let skipCurrent = null; // '건너뛰기' 버튼이 부를 함수
@@ -296,6 +362,7 @@
         <a class="tile" href="#weak"><div class="ic">🔁</div><b>약점 복습</b><span>🔺❌ ${weak}문항</span></a>
         <a class="tile" href="#records"><div class="ic">📊</div><b>내 기록 · 설정</b><span>파트별 점수, 음성 속도</span></a>
       </div>
+      <a class="btn" href="#recs" style="margin-bottom:14px">🎧 녹음 보관함 · 예전 녹음 다시 듣기</a>
       <div class="card">
         <h2>📌 추천 공부 순서 (Lv.3~4)</h2>
         <ol class="steps-list">
@@ -442,6 +509,8 @@
       for (;;) { // '다시 도전'이면 같은 문제 반복
         const run = await runQuestion(q, i, queue.length, tk, micOk, title);
         if (!run) return;
+        run.recId = await saveRecording(q, run);
+        if (!alive(tk)) return;
         res = await reviewQuestion(q, run, tk, i, queue.length);
         if (!res) return;
         if (res !== 'retry') break;
@@ -493,6 +562,7 @@
     // 3) 답변 (녹음)
     beep(880);
     const recording = Rec.start();
+    const recStart = Date.now();
     STT.start();
     timer.className = 'timer answer'; phase.className = 'phase answer';
     phase.innerHTML = recording ? '<span class="rec-dot"></span>답변하세요 (녹음 중)' : '답변하세요 (녹음 없음)';
@@ -502,7 +572,7 @@
     const transcript = await STT.stop();
     if (!alive(tk)) return null;
     beep(520, 0.25);
-    return { blob, transcript };
+    return { blob, transcript, sec: Math.round((Date.now() - recStart) / 1000) };
   }
 
   function reviewHtml(q, run, i, total) {
@@ -522,6 +592,10 @@
       <div class="card">
         <h2>🎧 내 답변</h2>
         ${audio}${tr}
+      </div>
+      <div class="card">
+        <h2>🕘 예전 녹음과 비교 <span class="muted small">(최근 ${KEEP}개 보관)</span></h2>
+        <div id="history" class="muted small">불러오는 중…</div>
       </div>
       <div class="card">
         <h2>✅ 모범답안 <span class="muted small">문장별 🔊로 따라 말하기</span></h2>
@@ -552,12 +626,24 @@
       </div>`;
   }
 
+  async function loadHistory(q, curId) {
+    const el = document.getElementById('history');
+    if (!el) return;
+    let list;
+    try { list = (await RecStore.byQ(q.id)).filter((r) => r.id !== curId); } catch (e) { el.textContent = '이 브라우저에서는 녹음을 보관할 수 없어요. (비공개 창이면 일반 창으로 열어 주세요)'; return; }
+    if (!document.body.contains(el)) return;
+    el.className = '';
+    el.innerHTML = list.length ? list.map(recRowHtml).join('')
+      : '<div class="muted small">이 문제의 첫 녹음이에요. 다음에 다시 풀면 여기서 지금 녹음과 비교할 수 있어요.</div>';
+  }
+
   function reviewQuestion(q, run, tk, i, total) {
     return new Promise((res) => {
       if (!alive(tk)) return res(null);
       render(reviewHtml(q, run, i, total));
       window.scrollTo(0, 0);
       bindSay();
+      loadHistory(q, run.recId);
       document.getElementById('playAll').addEventListener('click', () => TTS.speak(q.model));
       document.getElementById('playSlow').addEventListener('click', () => TTS.speak(q.model, 0.65));
       const note = document.getElementById('note');
@@ -568,6 +654,7 @@
       app.querySelectorAll('[data-r]').forEach((b) => b.addEventListener('click', () => {
         TTS.stop();
         rateQuestion(q, Number(b.dataset.r));
+        if (run.recId) RecStore.setRating(run.recId, Number(b.dataset.r)).catch(() => {});
         res({ r: Number(b.dataset.r) });
       }));
       document.getElementById('retry').addEventListener('click', () => { TTS.stop(); res('retry'); });
@@ -647,6 +734,8 @@
       for (const q of sec.qs) {
         const run = await runQuestion(q, idx++, total, tk, micOk, `모의고사 · 파트 ${sec.part.id}`);
         if (!run) return;
+        run.recId = await saveRecording(q, run);
+        if (!alive(tk)) return;
         results.push({ q, run });
       }
     }
@@ -699,6 +788,7 @@
         if (rated[card.dataset.i] === undefined) rateQuestion(x.q, r);
         else { db.ratings[x.q.id].r = r; const last = db.log.filter((l) => l.q === x.q.id).pop(); if (last) last.r = r; save(); }
         rated[card.dataset.i] = r;
+        if (x.run.recId) RecStore.setRating(x.run.recId, r).catch(() => {});
         card.querySelectorAll('[data-r]').forEach((o) => o.classList.toggle('sel', o === b));
         updateScore();
       }));
@@ -779,6 +869,56 @@
     draw();
   }
 
+  /* ───────────── 녹음 보관함 ───────────── */
+  async function viewRecordings() {
+    setHeader('녹음 보관함');
+    const tk = token;
+    render('<p class="muted small">불러오는 중…</p>');
+    let all = null;
+    try { all = await RecStore.all(); } catch (e) { all = null; }
+    if (!alive(tk)) return;
+    if (all === null) {
+      render(`<div class="card"><h2>녹음을 보관할 수 없어요</h2><p class="muted small">이 브라우저에서는 저장 공간을 쓸 수 없어요. 비공개(시크릿) 창이면 일반 창으로 열어 주세요.</p></div>`);
+      return;
+    }
+    const size = all.reduce((s, r) => s + (r.blob ? r.blob.size : 0), 0);
+    const groups = {};
+    all.forEach((r) => { (groups[r.q] = groups[r.q] || []).push(r); });
+    const latest = (id) => Math.max(...groups[id].map((r) => r.t));
+    const qids = Object.keys(groups).sort((a, b) => latest(b) - latest(a));
+    render(`
+      <div class="card">
+        <h2>🎧 녹음 보관함</h2>
+        <p class="small muted">녹음 ${all.length}개 · 약 ${fmtSize(size)}. 문제마다 최근 ${KEEP}개까지 <b>이 휴대폰에만</b> 보관돼요. 인터넷으로는 올라가지 않아요.</p>
+        ${all.length ? '<button class="btn ghost" id="delAll">🗑️ 녹음 전체 삭제</button>' : ''}
+      </div>
+      ${all.length ? qids.map((id) => {
+        const q = qById(id);
+        return `<details class="card rec-group" data-q="${esc(id)}">
+          <summary><span class="chip">파트 ${q ? q.part : '?'}</span> <span class="muted small">${groups[id].length}개 · 최근 ${fmtTime(latest(id))}</span>
+            <div class="rec-q">${q ? jp(q.q) : esc(id)}</div></summary>
+          <div class="rec-list"></div>
+        </details>`;
+      }).join('') : `<div class="card"><p class="muted">아직 보관된 녹음이 없어요. 파트 연습이나 모의고사에서 녹음하면 여기에 쌓여요.</p><a class="btn primary" href="#parts">파트 연습하러 가기</a></div>`}
+    `);
+    app.querySelectorAll('.rec-group').forEach((d) => d.addEventListener('toggle', () => {
+      const box = d.querySelector('.rec-list');
+      if (d.open && !box.childElementCount) box.innerHTML = groups[d.dataset.q].sort((a, b) => b.t - a.t).map(recRowHtml).join('');
+    }));
+    const del = document.getElementById('delAll');
+    if (del) del.addEventListener('click', async () => {
+      if (!del.dataset.armed) {
+        del.dataset.armed = '1';
+        del.textContent = `한 번 더 누르면 녹음 ${all.length}개가 모두 지워져요`;
+        del.style.color = 'var(--bad)';
+        return;
+      }
+      del.disabled = true; del.textContent = '지우는 중…';
+      try { await RecStore.clear(); } catch (e) { /* 무시 */ }
+      if (alive(tk)) viewRecordings();
+    });
+  }
+
   /* ───────────── 기록 · 설정 ───────────── */
   function viewRecords() {
     setHeader('내 기록 · 설정');
@@ -828,14 +968,23 @@
         <div style="margin-top:10px"><button class="mini-btn" id="testVoice">🔊 음성 테스트</button></div>
       </div>
       <div class="card">
+        <h2>🎧 녹음 보관함</h2>
+        <p class="small muted" id="recInfo">불러오는 중…</p>
+        <a class="btn" href="#recs">녹음 보관함 열기 (전체 삭제도 여기서)</a>
+      </div>
+      <div class="card">
         <h2>🗂️ 데이터</h2>
-        <p class="small muted">기록은 이 휴대폰 브라우저 안에만 저장돼요. 녹음 파일은 저장되지 않습니다.</p>
+        <p class="small muted">기록은 이 휴대폰 브라우저 안에만 저장돼요. 아래 버튼은 연습 기록·카드 진도·메모를 지워요 (녹음은 녹음 보관함에서 따로 지워요).</p>
         <button class="btn ghost" id="reset">기록 전체 지우기</button>
       </div>
     `);
     app.querySelectorAll('[data-set]').forEach((el) => el.addEventListener('change', () => { db.settings[el.dataset.set] = el.checked; save(); }));
     document.getElementById('rate').addEventListener('change', (e) => { db.settings.rate = Number(e.target.value); save(); });
     document.getElementById('testVoice').addEventListener('click', () => TTS.speak('こんにちは。{一緒|いっしょ}に{日本語|にほんご}を{頑張|がんば}りましょう。'));
+    RecStore.all().then((all) => {
+      const el = document.getElementById('recInfo');
+      if (el) el.textContent = `보관된 녹음 ${all.length}개 · 약 ${fmtSize(all.reduce((s, r) => s + (r.blob ? r.blob.size : 0), 0))}`;
+    }).catch(() => { const el = document.getElementById('recInfo'); if (el) el.textContent = '이 브라우저에서는 녹음을 보관할 수 없어요.'; });
     const resetBtn = document.getElementById('reset');
     resetBtn.addEventListener('click', () => {
       if (resetBtn.dataset.armed) {
@@ -851,7 +1000,7 @@
   /* ───────────── 화면 이동 ───────────── */
   const routes = {
     '': viewHome, home: viewHome, parts: viewParts, practice: viewPracticeIntro, templates: viewTemplates,
-    cards: viewCards, mock: viewMock, records: viewRecords, weak: viewWeak
+    cards: viewCards, mock: viewMock, records: viewRecords, weak: viewWeak, recs: viewRecordings
   };
   function route() {
     stopEverything();
