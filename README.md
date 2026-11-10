@@ -23,6 +23,7 @@ python3 tools/build_pwa.py --out docs/cards     # docs/cards/ 에 잠긴 설치�
 - 주소: `https://minsikwoo.github.io/For_App/cards/` (SJPT 앱은 `https://minsikwoo.github.io/For_App/`)
 - 사이트 설정: https://github.com/MinSikWoo/For_App/settings/pages → Branch `ccr-242c6142-kf1tkp`, 폴더 `/docs`
 - 배포 상황 확인: https://github.com/MinSikWoo/For_App/actions (초록 체크 = 완료). 배포가 오래 멈추면 새 커밋을 올리면 다시 배포된다.
+- 새 버전을 낼 때는 `japanese-word-game/changelog.js` 맨 위에 버전·날짜·요약·내용을 추가한 뒤 빌드한다. 앱의 업데이트 알림·‘새로워진 점’ 창과 `CHANGELOG.md` 가 여기서 만들어진다.
 - 비밀번호는 `.env` 의 `APP_PASSWORD`.
 
 - `pwa/` 안의 게임은 비밀번호로 암호화되어 있어서 공개된 곳에 올려도 비밀번호 없이는 열 수 없다.

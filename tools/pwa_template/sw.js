@@ -12,6 +12,7 @@ self.addEventListener('activate', function (e) {
 });
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
+  if (/version\.json$/.test(new URL(e.request.url).pathname)) return;   // 새 버전 정보는 항상 최신으로
   e.respondWith(caches.open(VERSION).then(function (cache) {
     return cache.match(e.request, { ignoreSearch: true }).then(function (hit) {
       var net = fetch(e.request).then(function (res) {

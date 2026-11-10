@@ -430,11 +430,42 @@
   });
   showInstall();
 
+  // ---------- 업데이트 기록 / 새로워진 점 ----------
+  var LOG = window.CHANGELOG || [], CUR = LOG[0] || { v: '?', items: [] };
+  function logHTML(list) {
+    return list.map(function (e) {
+      return '<div class="log-item"><div class="log-head"><b>v' + e.v + '</b><span>' + e.title + '</span><small>' + e.date + '</small></div><ul>' +
+        e.items.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul></div>';
+    }).join('');
+  }
+  $('verTag').textContent = '지금 v' + CUR.v;
+  $('logBox').addEventListener('toggle', function () { if ($('logBox').open) $('logList').innerHTML = logHTML(LOG); });
+  (function () {
+    var seen = load('jw-seen-version', null);
+    var returning = !!seen || !isNew;                              // 예전부터 쓰던 사람인지
+    if (returning && seen !== CUR.v && LOG.length) {
+      var idx = -1; LOG.forEach(function (e, i) { if (e.v === seen && idx < 0) idx = i; });
+      var fresh = LOG.slice(0, idx > 0 ? Math.min(idx, 3) : 1);  // 못 본 버전들 (최대 3개)
+      $('newsBadge').textContent = '업데이트 완료 · v' + CUR.v;
+      $('newsBody').innerHTML = logHTML(fresh);
+      $('newsPet').innerHTML = petSVG('happy');
+      $('news').hidden = false;
+    }
+    save('jw-seen-version', CUR.v);
+    $('newsOk').addEventListener('click', function () { $('news').hidden = true; });
+    $('news').addEventListener('click', function (e) { if (e.target === $('news')) $('news').hidden = true; });
+  })();
+
   // ---------- 새 버전 알림 (설치한 앱 / GitHub Pages) ----------
   (function () {
     if (!('serviceWorker' in navigator)) return;
     var sw = navigator.serviceWorker;
-    function showUpdate() { $('updateBar').hidden = false; }
+    function showUpdate() {
+      $('updateBar').hidden = false;
+      fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+        if (j && j.v && j.v !== CUR.v) $('updateText').textContent = '새 버전 v' + j.v + ' · ' + j.title;
+      }).catch(function () {});
+    }
     if (window.__swUpdated) showUpdate();                       // 잠금 화면에 있을 때 이미 새 버전을 받은 경우
     if (sw.controller) sw.addEventListener('controllerchange', showUpdate);
     function check() { try { sw.getRegistration().then(function (r) { if (r) r.update(); }).catch(function () {}); } catch (e) {} }

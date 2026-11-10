@@ -1,5 +1,5 @@
 // 오프라인 실행용. 한 번 열면 파일을 휴대폰에 저장해 두고, 인터넷이 되면 새 버전으로 조용히 바꿔 둔다.
-var VERSION = 'jw-caaa06d59e6f';
+var VERSION = 'jw-4a1b1749202b';
 var CORE = ['./', './index.html', './app.enc', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', function (e) {
@@ -12,6 +12,7 @@ self.addEventListener('activate', function (e) {
 });
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
+  if (/version\.json$/.test(new URL(e.request.url).pathname)) return;   // 새 버전 정보는 항상 최신으로
   e.respondWith(caches.open(VERSION).then(function (cache) {
     return cache.match(e.request, { ignoreSearch: true }).then(function (hit) {
       var net = fetch(e.request).then(function (res) {

@@ -123,6 +123,27 @@ def build_artifact(out, data):
     print(f"Claude 공유용: {out}")
 
 
+def read_changelog():
+    """japanese-word-game/changelog.js 에서 업데이트 기록을 읽는다."""
+    path = GAME / "changelog.js"
+    if not path.exists():
+        return []
+    src = path.read_text(encoding="utf-8")
+    body = src[src.index("[", src.index("window.CHANGELOG")):src.rindex("]") + 1]
+    body = re.sub(r"//[^\n]*", "", body)
+    body = re.sub(r"([{,]\s*)(\w+)\s*:", r'\1"\2":', body)          # 키에 따옴표
+    body = re.sub(r"'((?:[^'\\]|\\.)*)'", lambda m: json.dumps(m.group(1)), body)  # '문자열' → "문자열"
+    body = re.sub(r",(\s*[\]}])", r"\1", body)                       # 끝 쉼표 제거
+    return json.loads(body)
+
+
+def write_changelog_md(log):
+    lines = ["# 일본어 단어 카드 업데이트 기록", "", "`tools/build_pwa.py` 가 `japanese-word-game/changelog.js` 로 자동으로 만드는 파일입니다. 직접 고치지 마세요.", ""]
+    for e in log:
+        lines += [f"## v{e['v']} · {e['title']} ({e['date']})", ""] + [f"- {t}" for t in e["items"]] + [""]
+    (ROOT / "CHANGELOG.md").write_text("\n".join(lines), encoding="utf-8")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "docs" / "cards"))
@@ -145,6 +166,10 @@ def main():
     sw = out / "sw.js"
     sw.write_text(sw.read_text(encoding="utf-8").replace("__VERSION__", "jw-" + version), encoding="utf-8")
     (out / ".nojekyll").write_text("", encoding="utf-8")
+    log = read_changelog()
+    if log:
+        (out / "version.json").write_text(json.dumps(log[0], ensure_ascii=False), encoding="utf-8")
+        write_changelog_md(log)
 
     if args.artifact:
         build_artifact(Path(args.artifact), data)

@@ -460,3 +460,20 @@ details.list[open] summary::after { transform: rotate(45deg); }
 /* ===== v8: update notice ===== */
 .update-bar { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 40; display: flex; align-items: center; gap: 10px; width: max-content; max-width: calc(100% - 32px); background: var(--ink); color: var(--paper); padding: 7px 7px 7px 16px; border-radius: 999px; box-shadow: 0 10px 24px -10px rgba(0,0,0,.45); font-size: 14.5px; animation: rise .3s ease; }
 .update-bar button { border: 0; border-radius: 999px; background: var(--momo); color: #FFFFFF; font-family: var(--display); font-size: 15px; padding: 6px 14px; white-space: nowrap; }
+
+/* ===== v9: update notes ===== */
+.update-bar span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.news { position: fixed; inset: 0; z-index: 50; background: rgba(40, 24, 34, .45); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); animation: rise .25s ease; }
+.news-card { box-sizing: border-box; width: 100%; max-width: 380px; max-height: 100%; overflow-y: auto; padding: 20px 18px 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: left; }
+.news-title { margin: 0; }
+.news-title::before { display: none; }
+.news-body { width: 100%; }
+.log-item { padding: 10px 0; border-bottom: 1.5px dashed var(--line); }
+.log-item:last-child { border-bottom: 0; }
+.log-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.log-head b { font-family: var(--display); font-weight: 400; font-size: 16px; color: var(--momo-deep); }
+.log-head span { font-family: var(--display); font-size: 16px; }
+.log-head small { color: var(--muted); font-size: 12px; margin-left: auto; }
+.log-item ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; color: var(--ink); }
+.log-item li { margin: 2px 0; }
+.ver-tag { font-family: var(--ui); font-size: 12px; color: var(--muted); margin-left: 6px; }

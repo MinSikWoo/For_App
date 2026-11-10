@@ -5,7 +5,17 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Zen+Maru+Gothic:wght@500;700&display=swap">
 <link rel="stylesheet" href="style.css">
 
-<div class="update-bar" id="updateBar" role="status" hidden><span>새 버전이 나왔어요!</span><button type="button" id="updateBtn">지금 업데이트</button></div>
+<div class="update-bar" id="updateBar" role="status" hidden><span id="updateText">새 버전이 나왔어요!</span><button type="button" id="updateBtn">지금 업데이트</button></div>
+
+<div class="news" id="news" role="dialog" aria-modal="true" aria-labelledby="newsTitle" hidden>
+  <div class="news-card card">
+    <div class="pet-slot" id="newsPet" style="width:96px"></div>
+    <span class="badge" id="newsBadge"></span>
+    <h2 class="news-title" id="newsTitle">새로워진 점</h2>
+    <div class="news-body" id="newsBody"></div>
+    <button class="primary" type="button" id="newsOk">확인</button>
+  </div>
+</div>
 
 <div class="app" id="app">
   <!-- 공부 -->
@@ -83,6 +93,11 @@
     <details class="list" id="listBox">
       <summary>전체 단어 보기</summary>
       <div id="wordList"></div>
+    </details>
+
+    <details class="list" id="logBox">
+      <summary>업데이트 기록 <span class="ver-tag" id="verTag"></span></summary>
+      <div id="logList"></div>
     </details>
 
     <p class="foot">정답 1개 = 보석 1개, 3연속부터 2개, 5연속부터 3개. 10문제를 다 맞히면 보너스 10개! 미니게임으로도 보석을 받아요. 같은 단어를 3번 연속 맞히면 ‘외운 단어’가 돼요. 기록과 보석은 이 기기의 브라우저에만 저장돼요.</p>
@@ -210,6 +225,7 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="words.js"></script>
+<script src="changelog.js"></script>
 <script src="sentences.js"></script>
 <script src="shop.js"></script>
 <script src="app.js"></script>
