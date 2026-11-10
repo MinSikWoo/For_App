@@ -8,7 +8,8 @@
 //   - 비밀번호는 .env 의 APP_PASSWORD 줄에서 읽는다 (화면/파일에 절대 출력하지 않음).
 // 환경 변수:
 //   PORT=8790  PORT2=8791  ROUNDS=3 (최대 5, 새 문제가 안 나오면 일찍 멈춤)  SEED=1
-//   SPEED=1 (지연 배율, 0.3 이면 더 빠르게)   ONLY=beginner,impatient,pc,global (일부만)
+//   SPEED=1 (지연 배율, 0.3 이면 더 빠르게)   ONLY=beginner,impatient,pc,global,full (일부만)
+//   GLOBAL_EVERY=1 (설치/업데이트/방 꽉 채우기 시험을 라운드마다; 기본은 첫 라운드만)
 // 결과:  .tmp/qa/findings.json, .tmp/qa/run_log.txt, .tmp/qa/shots/*.png
 // 페르소나:  beginner(390x844, 느림, 40% 오답)  impatient(360x740, 연타·중간 종료·새로고침)
 //            pc(1280x800 다크 모드, 키보드 1~4/Enter, O/X/화살표)
@@ -29,7 +30,7 @@ const PORT2 = +(process.env.PORT2 || 8791);
 const ROUNDS = Math.min(5, Math.max(1, +(process.env.ROUNDS || 3)));
 const SEED0 = +(process.env.SEED || 1);
 const SPEED = +(process.env.SPEED || 1);
-const ONLY = (process.env.ONLY || 'beginner,impatient,pc,global').split(',');
+const ONLY = (process.env.ONLY || 'beginner,impatient,pc,global,full').split(',');
 fs.mkdirSync(SHOTS, { recursive: true });
 
 // ---------- 비밀번호 (.env) ----------
@@ -112,7 +113,8 @@ function watch(page, tag) {
   });
   page.on('requestfailed', r => { const u = r.url(); if (/fonts\./.test(u) || page.__offline) return; if (/localhost/.test(u)) find('reqfail:' + u.replace(/\?.*/, ''), '중간', tag, '파일을 못 받음', u + ' ' + (r.failure() || {}).errorText); });
 }
-let shotN = 0;
+let shotN = 0; const shotsTaken = {};
+async function fshot(id, page, name) { return findings[id] && findings[id].shots.length >= 2 ? '' : shot(page, name); }
 async function shot(page, name) {
   const f = path.join(SHOTS, `${String(++shotN).padStart(3, '0')}_${CUR.persona}_s${CUR.seed}_${name}.png`);
   try { await page.screenshot({ path: f }); } catch (e) { return ''; }
@@ -133,22 +135,27 @@ async function current(page) { return page.evaluate(() => ['home', 'play', 'resu
 // ---------- 화면 점검 (가로 넘침, 화면 밖, 겹침, 글자 잘림) ----------
 async function layout(page, where) {
   const r = await page.evaluate(() => {
-    const out = { overflow: 0, outside: [], covered: [], clipped: [] };
+    const out = { overflow: 0, outside: [], covered: [], clipped: [], toast: [] };
     const de = document.documentElement, vw = de.clientWidth, vh = window.innerHeight;
     out.overflow = Math.max(de.scrollWidth, document.body ? document.body.scrollWidth : 0) - vw;
     const shown = el => { const s = getComputedStyle(el); if (s.visibility === 'hidden' || s.display === 'none' || +s.opacity === 0) return false; const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && !el.closest('[hidden]'); };
     const name = el => (el.id ? '#' + el.id : el.className && typeof el.className === 'string' ? '.' + el.className.split(' ').join('.') : el.tagName) + ' "' + (el.innerText || el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 30) + '"';
+    const modal = document.getElementById('news') && !document.getElementById('news').hidden;
     const clickables = [...document.querySelectorAll('button, [role=radio], input[type=checkbox] + .knob, summary, a, textarea')].filter(shown);
     for (const el of clickables) {
       const b = el.getBoundingClientRect();
       if (el.closest('.bb-arena') || el.closest('.pairs')) continue;
-      if (b.left < -1 || b.right > vw + 1) out.outside.push(name(el) + ` x=${Math.round(b.left)}..${Math.round(b.right)} vw=${vw}`);
+      let sc = el.parentElement, inScroller = false;
+      while (sc) { const ox = getComputedStyle(sc).overflowX; if (ox === 'auto' || ox === 'scroll') { inScroller = true; break; } sc = sc.parentElement; }
+      if (!inScroller && (b.left < -1 || b.right > vw + 1)) out.outside.push(name(el) + ` x=${Math.round(b.left)}..${Math.round(b.right)} vw=${vw}`);
       const cx = b.left + b.width / 2, cy = b.top + b.height / 2;
       if (cy < 0 || cy > vh || cx < 0 || cx > vw) continue;
       const hit = document.elementFromPoint(cx, cy);
       if (hit && hit !== el && !el.contains(hit) && !hit.contains(el)) {
         const lab = el.closest('label'); if (lab && lab.contains(hit)) continue;
-        if (hit.closest('.toast')) continue;
+        if (hit.closest('.toast')) { out.toast.push(name(el)); continue; }
+        if (modal && !el.closest('#news')) continue;            // '새로워진 점' 창이 떠 있으면 뒤는 가려지는 게 정상
+        if (hit.closest('.tabs') && !el.closest('.tabs')) continue; // 아래 메뉴 뒤로 스크롤되는 건 정상
         out.covered.push(name(el) + ' ← 가림: ' + name(hit));
       }
     }
@@ -162,10 +169,12 @@ async function layout(page, where) {
     }
     return out;
   });
-  const sp = r.overflow > 1 || r.outside.length || r.covered.length || r.clipped.length ? await shot(page, 'layout_' + where) : '';
+  const ids = [r.overflow > 1 ? 'overflow:' + where : null].concat(r.outside.map(o => 'outside:' + where + ':' + o.slice(0, 40)), r.covered.map(o => 'covered:' + where + ':' + o.replace(/".*?"/g, '').slice(0, 60)), r.clipped.map(o => 'clip:' + where + ':' + o.replace(/".*?"|\(.*\)/g, '').slice(0, 50))).filter(Boolean);
+  const sp = ids.some(id => !findings[id] || findings[id].shots.length < 2) ? await shot(page, 'layout_' + where) : '';
   if (r.overflow > 1) find('overflow:' + where, '중간', where, '가로로 화면이 넘쳐 옆으로 밀림', `scrollWidth-clientWidth=${r.overflow}px`, { shot: sp });
   r.outside.slice(0, 3).forEach(o => find('outside:' + where + ':' + o.slice(0, 40), '중간', where, '버튼이 화면 밖으로 나감', o, { shot: sp }));
   r.covered.slice(0, 4).forEach(o => find('covered:' + where + ':' + o.replace(/".*?"/g, '').slice(0, 60), '중간', where, '누를 수 있는 것이 다른 것에 가려짐', o, { shot: sp }));
+  if (r.toast.length) find('toast-blocks', '중간', where, '안내 말풍선(토스트)이 떠 있는 2.6초 동안 그 아래 버튼이 눌리지 않음', r.toast.slice(0, 3).join(', '), { shot: await fshot('toast-blocks', page, 'toast_' + where) });
   r.clipped.slice(0, 4).forEach(o => find('clip:' + where + ':' + o.replace(/".*?"|\(.*\)/g, '').slice(0, 50), '낮음', where, '글자가 칸보다 길어 잘리거나 삐져나옴', o, { shot: sp }));
   return r;
 }
@@ -191,7 +200,7 @@ async function unlock(page, P, { remember = true, url = BASE, expectForm = null 
 // ---------- 정답지 (페이지 안에서) ----------
 // 루비(rt)를 빼고 글자만
 const PAGE_HELPERS = `
-  window.__plain = function (el) { if (!el) return ''; var c = el.cloneNode(true); c.querySelectorAll('rt, .num').forEach(function (x) { x.remove(); }); return c.textContent.replace(/\\s+/g, '').trim(); };
+  window.__plain = function (el) { if (!el) return ''; var c = el.cloneNode(true); c.querySelectorAll('rt, .num').forEach(function (x) { x.remove(); }); return c.textContent.replace(/\\s+/g, ' ').trim(); };
   window.__byPlain = function (p) { return window.APP.W.filter(function (w) { return w.plain === p; })[0]; };
   window.__byKo = function (k) { return window.APP.W.filter(function (w) { return w.ko === k; })[0]; };
   window.__S = (function () { var F = /\\{([^|}]+)\\|([^}]+)\\}/g, out = []; ['N5','N4','N3'].forEach(function (lv) { (window.SENTENCES[lv] || []).forEach(function (a) { var raw = a[0], m = raw.match(/\\[([^\\]]+)\\]/); out.push({ lv: lv, ko: a[1], plain: raw.replace(/[\\/\\[\\]]/g, '').replace(F, '$1'), blank: m ? m[1].replace(F, '$1') : '', chunks: raw.replace(/[\\[\\]]/g, '').split('/').map(function (c) { return c.replace(F, '$1'); }) }); }); }); return out; })();
@@ -204,11 +213,12 @@ function meaningParts(ko) { return ko.replace(/\(.*?\)/g, '').split(/[,·\/]/).m
 // =====================================================================
 // 단어 게임
 // =====================================================================
-async function wordGame(page, P, { level, mode, cat, review = false, style = 'tap', tag }) {
+async function wordGame(page, P, { level, mode, cat, review = false, style = 'tap', tag, started = false }) {
   await helpers(page);
   const before = await store(page);
   const reviewSet = review ? Object.keys(before.progress || {}).filter(k => { const p = before.progress[k]; return p.w > 0 && p.s < 2; }) : null;
-  if (!review) {
+  if (started) { /* 이미 시작함 */ }
+  else if (!review) {
     if (level) { await tap(page, `[data-level="${level}"]`, P); }
     if (mode) { await tap(page, `[data-mode="${mode}"]`, P); }
     if (cat) { const c = page.locator(`[data-cat="${cat}"]`); if (await c.count()) { await c.first().scrollIntoViewIfNeeded(); await tap(page, `[data-cat="${cat}"]`, P); } else cat = 'all'; }
@@ -456,7 +466,7 @@ async function playBubble(page, P) {
       for (let i = 0; i < v.length; i++) for (let j = i + 1; j < v.length; j++) {
         const A = v[i].r, B = v[j].r;
         const ox = Math.min(A.l + A.w, B.l + B.w) - Math.max(A.l, B.l), oy = Math.min(A.t + A.h, B.t + B.h) - Math.max(A.t, B.t);
-        if (ox > A.w * 0.3 && oy > A.h * 0.3) find('bb-overlap:' + CUR.persona, '중간', '방울 터뜨리기', '방울끼리 많이 겹쳐서 원하는 방울을 누르기 어려움', `${v[i].p} 와 ${v[j].p} 가 ${Math.round(ox)}x${Math.round(oy)}px 겹침`, { shot: await shot(page, 'bubble_overlap') });
+        if (ox > A.w * 0.3 && oy > A.h * 0.3) find('bb-overlap:' + CUR.persona, '중간', '방울 터뜨리기', '방울끼리 많이 겹쳐서 원하는 방울을 누르기 어려움', `${v[i].p} 와 ${v[j].p} 가 ${Math.round(ox)}x${Math.round(oy)}px 겹침`, { shot: await fshot('bb-overlap:' + CUR.persona, page, 'bubble_overlap') });
       }
       info.bs.forEach(b => { if (b.sw > b.cw + 2) find('bb-clip', '낮음', '방울 터뜨리기', '방울 안 글자가 넘침', b.p); });
       if (missOnce) { const wrong = v.find(b => b.p !== target && !/no/.test(b.cls)); if (wrong) { await page.mouse.click(wrong.x, wrong.y); missOnce = false; await sleep(200); continue; } }
@@ -579,7 +589,7 @@ async function playSOrder(page, P) {
       const fb = await page.locator('#soFb').innerText();
       if (!/정답은/.test(fb)) find('so-twice', '중간', '문장 만들기', '두 번 틀려도 정답을 보여주지 않음', fb);
       else good('문장 만들기: 두 번 틀리면 정답 문장을 보여줌');
-      const sp = await shot(page, 'sorder_twice_wrong');
+      if (!shotsTaken.sorderTwice) { shotsTaken.sorderTwice = 1; await shot(page, 'sorder_twice_wrong'); }
       // 다 놓인 조각을 다시 눌러 보기 (정답 보여준 뒤라 반응 없어야 함)
     } else {
       if (mode === 'once') { await place(wrongOrder); await sleep(900); exp += 1; }
@@ -598,7 +608,11 @@ async function playSOrder(page, P) {
 // =====================================================================
 // 상점 / 방
 // =====================================================================
-async function goTab(page, t, P) { await tap(page, `[data-tab="${t}"]`, P); await waitVis(page, '#' + t); }
+async function goTab(page, t, P) {
+  if (await vis(page, '#play')) await tap(page, '#quit', P);
+  if (await vis(page, '#miniBody')) await tap(page, '#miniQuit', P);
+  if (await vis(page, '#miniEnd')) await tap(page, '#miniHome', P);
+  await tap(page, `[data-tab="${t}"]`, P); await waitVis(page, '#' + t); }
 async function shopTab(page, slot, P) { await page.locator(`[data-shop="${slot}"]`).scrollIntoViewIfNeeded(); await tap(page, `[data-shop="${slot}"]`, P); }
 async function shopping(page, P, { buyAllSlots = false, dbl = false } = {}) {
   await goTab(page, 'shop', P);
@@ -630,7 +644,7 @@ async function shopping(page, P, { buyAllSlots = false, dbl = false } = {}) {
         await human(P.lo, P.hi); await page.locator(`[data-item="${cheap.id}"]`).dblclick();
         await sleep(200);
         const own = await page.evaluate(id => !!JSON.parse(localStorage.getItem('jw-pet')).owned[id], cheap.id);
-        if (own) find('shop-dbl-buy', '낮음', '상점', '물건을 두 번 빠르게 톡톡 누르면 확인 없이 바로 사짐', `${cheap.id} (${cheap.price}개) — ‘한 번 더 누르면 구매’ 문구를 읽을 틈이 없음`, { shot: await shot(page, 'shop_dblbuy') });
+        if (own) find('shop-dbl-buy', '낮음', '상점', '물건을 두 번 빠르게 톡톡 누르면 확인 없이 바로 사짐', `${cheap.id} (${cheap.price}개) — ‘한 번 더 누르면 구매’ 문구를 읽을 틈이 없음`, { shot: await fshot('shop-dbl-buy', page, 'shop_dblbuy') });
         else { await tap(page, `[data-item="${cheap.id}"]`, P); }
       } else {
         await tap(page, `[data-item="${cheap.id}"]`, P);
@@ -692,7 +706,7 @@ async function room(page, P) {
     const S = JSON.parse(localStorage.getItem('jw-pet'));
     const box = document.getElementById('roomBox').getBoundingClientRect();
     const out = [];
-    ['rug', 'deco', 'ceil', 'plant', 'furn', 'toy', 'food'].forEach(s => { const e = document.getElementById('slot-' + s); const b = e.getBoundingClientRect(); out.push({ s, equip: S.equip[s] || null, shown: !e.hidden && b.width > 2, inside: b.left >= box.left - 1 && b.right <= box.right + 1 && b.top >= box.top - 1 && b.bottom <= box.bottom + 1, rect: [b.left, b.top, b.width, b.height].map(Math.round) }); });
+    ['rug', 'deco', 'ceil', 'plant', 'furn', 'toy', 'food'].forEach(s => { const e = document.getElementById('slot-' + s); const b = e.getBoundingClientRect(); out.push({ s, equip: S.equip[s] || null, shown: !e.hidden && b.width > 2, inside: b.left >= box.left - 6 && b.right <= box.right + 6 && b.top >= box.top - 6 && b.bottom <= box.bottom + 6, rect: [b.left, b.top, b.width, b.height].map(Math.round) }); });
     return { out, box: [box.left, box.top, box.width, box.height].map(Math.round) };
   });
   const sp = await shot(page, 'room');
@@ -725,7 +739,7 @@ async function room(page, P) {
 // 시나리오
 // =====================================================================
 async function lockScreenTests(P) {
-  const ctx = await newCtx(CUR.persona, CUR.seed);
+  const ctx = await newCtx('beginner', CUR.seed);
   const page = await ctx.newPage(); watch(page, '잠금 화면');
   await page.goto(BASE);
   await waitVis(page, '#f');
@@ -888,7 +902,7 @@ async function exportImport(page, P, seed) {
   const src = await store(page);
   // 새 브라우저 (기억하기 켜기)
   for (const remember of [true, false]) {
-    const ctx2 = await newCtx(CUR.persona, seed + 99);
+    const ctx2 = await newCtx(PERSONAS[CUR.persona] ? CUR.persona : 'beginner', seed + 99);
     const p2 = await ctx2.newPage(); watch(p2, '기록 옮기기');
     await unlock(p2, P, { remember });
     await p2.locator('#importCode').scrollIntoViewIfNeeded();
@@ -944,7 +958,7 @@ async function personaImpatient(seed) {
   await page.locator('#start').dblclick();
   await waitVis(page, '#play');
   // 답 두 번 + 다음 두 번
-  await wordGame(page, P, { review: false, style: 'double', tag: 'double' }).catch(e => log('double err', e.message));
+  await wordGame(page, P, { review: false, style: 'double', tag: 'double', started: true }).catch(e => log('double err', e.message));
   await goTab(page, 'home', P).catch(async () => { await page.locator('#quit').click().catch(() => {}); });
   // 게임 중간에 그만두기
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -1062,6 +1076,28 @@ async function personaPC(seed) {
   await ctx.close();
 }
 
+// ---------- 방을 꽉 채우기 (보석을 넉넉히 넣고 모든 칸을 하나씩 삼) ----------
+async function fullRoom(seed) {
+  const P = PERSONAS.beginner;
+  for (const pn of ['beginner', 'impatient', 'pc']) {
+    const ctx = await newCtx(pn, seed); const page = await ctx.newPage(); watch(page, '방 꽉 채우기 ' + pn);
+    const PP = { ...PERSONAS[pn], lo: 60, hi: 200 };
+    await unlock(page, PP);
+    await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('jw-pet')); s.gems = 3000; localStorage.setItem('jw-pet', JSON.stringify(s)); });
+    await page.reload(); await page.waitForSelector('#home:not([hidden])');
+    await shopping(page, PP, { buyAllSlots: true });
+    await shot(page, 'shop_full_' + pn);
+    const filled = await room(page, PP);
+    await page.locator('#roomPet').click(); await sleep(200);
+    await shot(page, 'room_full_' + pn);
+    if (filled < 7) find('room-fill-script', '낮음', '테스트 스크립트', '방 칸을 다 채우지 못함', String(filled));
+    else good('내 방: 모든 칸(러그·벽 장식·천장·식물·가구·장난감·간식 + 펫 옷 5칸)을 채워도 다 보임');
+    // 펫 옷 입은 모습이 홈/결과/미니게임에서 깨지지 않는지
+    await goTab(page, 'home', PP); await shot(page, 'home_dressed_' + pn);
+    await ctx.close();
+  }
+}
+
 // ---------- 전역: 설치, 오프라인, 업데이트, 새로워진 점 ----------
 async function globalTests(seed) {
   const P = PERSONAS.beginner;
@@ -1163,7 +1199,8 @@ async function globalTests(seed) {
     // 게임 중에도 알림이 가리는지
     await p5.locator('#start').click(); await waitVis(p5, '#play');
     await layout(p5, 'update_bar_play'); await shot(p5, 'update_bar_play');
-    await p5.locator('#quit').click();
+    const quitHit = await p5.evaluate(() => { const b = document.getElementById('quit').getBoundingClientRect(); const e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return e && e.closest('#quit') ? 'ok' : (e && (e.id || e.className)); });
+    if (quitHit !== 'ok') find('update-bar-covers-quit', '높음', '업데이트 알림', '게임 중에 업데이트 알림이 ‘그만하기’ 버튼과 점수를 덮어 누를 수 없음', '알림이 뜬 상태로 단어 게임/미니게임을 시작하면 ‘그만하기’를 누르면 알림이 눌림 (' + quitHit + ')', { shot: await shot(p5, 'update_bar_covers_quit') });
     await p5.locator('#updateBtn').click();
     await p5.waitForFunction(() => (document.getElementById('f') && !document.getElementById('f').hidden) || (document.getElementById('home') && !document.getElementById('home').hidden), null, { timeout: 15000 }).catch(() => {});
     await sleep(800);
@@ -1195,10 +1232,10 @@ async function main() {
       R = mulberry(seed * 1000 + 7); CUR.seed = seed;
       newThisRound = 0;
       log(`\n===== 라운드 ${round + 1} / 씨앗 ${seed} =====`);
-      const runs = [['global', () => globalTests(seed)], ['lock', () => lockScreenTests(PERSONAS.beginner)], ['beginner', () => personaBeginner(seed)], ['impatient', () => personaImpatient(seed)], ['pc', () => personaPC(seed)]];
+      const runs = [['global', () => globalTests(seed)], ['lock', () => lockScreenTests(PERSONAS.beginner)], ['beginner', () => personaBeginner(seed)], ['impatient', () => personaImpatient(seed)], ['pc', () => personaPC(seed)], ['full', () => fullRoom(seed)]];
       for (const [name, fn] of runs) {
         if (!ONLY.includes(name) && !(name === 'lock' && ONLY.includes('global'))) continue;
-        if (name === 'global' && round > 0 && !process.env.GLOBAL_EVERY) continue;   // 설치/업데이트 시험은 첫 라운드만
+        if ((name === 'global' || name === 'full') && round > 0 && !process.env.GLOBAL_EVERY) continue;   // 설치/업데이트 시험은 첫 라운드만
         CUR.persona = name;
         log(`--- ${name}`);
         const t0 = Date.now();
