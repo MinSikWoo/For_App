@@ -152,4 +152,5 @@ vite.config.ts.timestamp-*
 !.env.example
 credentials.json
 token.json
+# 작업 공간 (임시 파일)
 .tmp/
