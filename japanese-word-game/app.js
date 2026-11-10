@@ -417,6 +417,55 @@
     toast(GEM + ' ' + label + ' 구매 완료! ' + (it.slot === 'pet' ? '이제 같이 살아요' : '바로 사용했어요'));
   });
 
+  // ---------- 앱 설치 (안드로이드 크롬) ----------
+  var bip = window.__bip || null;
+  var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+  function showInstall() { $('installBtn').hidden = !bip || standalone; }
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); bip = e; window.__bip = e; showInstall(); });
+  window.addEventListener('appinstalled', function () { bip = null; showInstall(); toast('앱으로 설치했어요! 홈 화면에서 열어 보세요'); });
+  $('installBtn').addEventListener('click', function () {
+    if (!bip) return;
+    bip.prompt();
+    (bip.userChoice || Promise.resolve()).then(function () { bip = null; window.__bip = null; showInstall(); });
+  });
+  showInstall();
+
+  // ---------- 기록 옮기기 ----------
+  var CODE_HEAD = 'JWC1:';
+  $('exportBtn').addEventListener('click', function () {
+    var json = JSON.stringify({ p: progress, s: settings, pet: S });
+    var code = CODE_HEAD + btoa(unescape(encodeURIComponent(json)));
+    var box = $('exportCode'); box.value = code; box.hidden = false; $('copyBtn').hidden = false;
+    box.focus(); box.select();
+    $('moveMsg').textContent = '코드를 복사해서 옮겨 갈 곳의 ‘붙여넣기’ 칸에 넣어 주세요.';
+  });
+  $('copyBtn').addEventListener('click', function () {
+    var box = $('exportCode');
+    var done = function () { $('moveMsg').textContent = '복사했어요! 옮겨 갈 곳에서 붙여넣기 하세요.'; };
+    try {
+      navigator.clipboard.writeText(box.value).then(done, function () { box.focus(); box.select(); $('moveMsg').textContent = '코드를 길게 눌러 직접 복사해 주세요.'; });
+    } catch (e) { box.focus(); box.select(); $('moveMsg').textContent = '코드를 길게 눌러 직접 복사해 주세요.'; }
+  });
+  var importArmed = false, importT;
+  $('importBtn').addEventListener('click', function () {
+    var raw = ($('importCode').value || '').trim(), data;
+    try {
+      if (raw.indexOf(CODE_HEAD) !== 0) throw 0;
+      data = JSON.parse(decodeURIComponent(escape(atob(raw.slice(CODE_HEAD.length)))));
+      if (!data || typeof data.p !== 'object' || typeof data.pet !== 'object' || typeof data.pet.gems !== 'number') throw 0;
+    } catch (e) { $('moveMsg').textContent = '코드가 올바르지 않아요. ‘JWC1:’로 시작하는 코드 전체를 붙여넣어 주세요.'; return; }
+    if (!importArmed) {
+      importArmed = true; $('importBtn').textContent = '지금 기록을 덮어써요. 한 번 더 누르기';
+      $('moveMsg').textContent = '불러오면 이 화면의 기록은 코드 속 기록(보석 ' + data.pet.gems + '개)으로 바뀌어요.';
+      clearTimeout(importT); importT = setTimeout(function () { importArmed = false; $('importBtn').textContent = '코드로 기록 불러오기'; }, 6000);
+      return;
+    }
+    importArmed = false; clearTimeout(importT);
+    save('jw-progress', data.p); save('jw-settings', data.s || {}); save('jw-pet', data.pet);
+    $('moveMsg').textContent = '불러왔어요! 잠시 뒤 다시 열려요.';
+    setTimeout(function () { location.reload(); }, 800);
+  });
+
   // ---------- 미니게임에서 쓰는 기능 ----------
   window.APP = {
     W: W, GEM: GEM, levelPool: levelPool, jp: jp, jpSpan: jpSpan, shuffle: shuffle, speak: speak, toast: toast, show: show, go: go,

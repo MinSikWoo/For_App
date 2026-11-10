@@ -10,7 +10,7 @@
   비밀번호는 .env 의 APP_PASSWORD 에 둔다 (코드나 GitHub 에 절대 넣지 않는다).
   비밀번호가 없으면 새로 만들어 .env 에 저장하고 화면에 한 번 보여준다.
 
-    python3 tools/build_pwa.py            # 결과: pwa/ 폴더
+    python3 tools/build_pwa.py            # 결과: docs/cards/ 폴더 (GitHub Pages 주소 .../For_App/cards/)
     python3 tools/build_pwa.py --out 다른폴더
 """
 import argparse
@@ -125,7 +125,7 @@ def build_artifact(out, data):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=str(ROOT / "pwa"))
+    ap.add_argument("--out", default=str(ROOT / "docs" / "cards"))
     ap.add_argument("--plain", help="(검사용) 암호화 전 HTML 을 이 경로에 저장")
     ap.add_argument("--artifact", help="Claude 공유 링크용 잠긴 페이지를 이 폴더에 만든다 (GitHub 없이 링크로 공유)")
     args = ap.parse_args()

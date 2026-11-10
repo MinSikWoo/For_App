@@ -8,7 +8,7 @@
 <title>일본어 단어 카드</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <style>
   :root { --paper: #FFF6F4; --card: #FFFFFF; --ink: #45343F; --muted: #957F8C; --line: #F2DFE3; --momo: #FF8DA6; --momo-deep: #E0587C; --mikan: #F0844F; }
   @media (prefers-color-scheme: dark) { :root { --paper: #241B22; --card: #30252E; --ink: #F8EAF0; --muted: #BBA3B2; --line: #45363F; --momo-deep: #FF8FAB; --mikan: #FFA178; color-scheme: dark; } }
@@ -24,6 +24,8 @@
   button { width: 100%; border: 0; border-radius: 18px; padding: 14px; font-size: 18px; font-weight: 700; color: #FFFFFF; background: var(--momo); box-shadow: 0 5px 0 var(--momo-deep); cursor: pointer; }
   button:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--momo-deep); }
   button:disabled { opacity: .6; }
+  button.ghost { background: transparent; color: var(--momo-deep); box-shadow: inset 0 0 0 2px var(--momo); font-size: 16px; padding: 11px; }
+  button.ghost:active { transform: none; box-shadow: inset 0 0 0 2px var(--momo); }
   .err { color: var(--mikan); font-weight: 700; min-height: 1.4em; }
   .shake { animation: shake .4s; }
   @keyframes shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
@@ -38,10 +40,16 @@
   <label><input type="checkbox" id="remember" checked> 이 휴대폰에서 기억하기</label>
   <div class="err" id="err" role="alert"></div>
   <button id="go" type="submit">들어가기</button>
+  <button id="install" type="button" class="ghost" hidden>휴대폰에 앱으로 설치하기</button>
 </form>
 <script>
 (function () {
   var KEY = 'jw-unlock-key';
+  // 크롬이 '앱 설치' 기회를 주면 잡아 두었다가 버튼으로 보여줌 (게임 안 설정 화면에서도 같은 걸 씀)
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); window.__bip = e;
+    var b = document.getElementById('install'); if (b) b.hidden = false;
+  });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
   function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
   function toB64(buf) { var s = '', a = new Uint8Array(buf); for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
@@ -66,6 +74,11 @@
       .then(function (key) { return open(key, data); })
       .catch(function () { set(KEY, null); showForm('비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.'); });
   }).catch(function () { showForm('게임을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.'); });
+
+  document.getElementById('install').addEventListener('click', function () {
+    var e = window.__bip; if (!e) return;
+    e.prompt(); (e.userChoice || Promise.resolve()).then(function () { window.__bip = null; document.getElementById('install').hidden = true; });
+  });
 
   // 2) 비밀번호 입력
   $('f').addEventListener('submit', function (e) {

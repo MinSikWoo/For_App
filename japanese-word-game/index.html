@@ -65,6 +65,19 @@
       <label class="switch"><input type="checkbox" id="optSound"><span class="knob"></span><span>답을 고르면 발음 들려주기</span></label>
     </div>
 
+    <button class="primary" id="installBtn" type="button" hidden>휴대폰에 앱으로 설치하기</button>
+
+    <h2>기록 옮기기</h2>
+    <div class="settings move">
+      <p class="ex">다른 링크나 다른 휴대폰으로 보석·펫·소품·공부 기록을 옮길 때 써요.</p>
+      <button class="pill press" id="exportBtn" type="button">① 지금 기록을 코드로 만들기</button>
+      <textarea id="exportCode" rows="3" readonly hidden aria-label="내 기록 코드"></textarea>
+      <button class="pill alt press" id="copyBtn" type="button" hidden>코드 복사하기</button>
+      <textarea id="importCode" rows="3" placeholder="② 옮겨 갈 곳에서 여기에 코드를 붙여넣기" aria-label="기록 코드 붙여넣기"></textarea>
+      <button class="pill press" id="importBtn" type="button">코드로 기록 불러오기</button>
+      <p class="move-msg" id="moveMsg" role="status"></p>
+    </div>
+
     <details class="list" id="listBox">
       <summary>전체 단어 보기</summary>
       <div id="wordList"></div>

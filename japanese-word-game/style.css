@@ -448,3 +448,11 @@ details.list[open] summary::after { transform: rotate(45deg); }
 .s-row .s-ko { font-size: 14px; min-width: 0; }
 .s-row .pill { flex: none; padding: 4px 12px; font-size: 13px; }
 #mini .mini-hint .jp { font-size: 18px; line-height: 2; }
+
+/* ===== v7: install, move records ===== */
+#installBtn { margin-top: 4px; }
+.settings.move { gap: 8px; padding: 14px 16px; }
+.settings.move .ex { color: var(--muted); font-size: 13.5px; margin: 0; }
+.settings.move .pill { justify-self: start; }
+.settings.move textarea { width: 100%; box-sizing: border-box; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); font: 12px/1.4 ui-monospace, monospace; padding: 8px 10px; resize: vertical; word-break: break-all; }
+.move-msg { font-size: 13.5px; color: var(--momo-deep); min-height: 1.4em; margin: 0; }
