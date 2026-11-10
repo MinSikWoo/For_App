@@ -1,6 +1,6 @@
 (function () {
   var CATS = [['all','전체'],['people','사람·가족'],['food','음식'],['place','장소·자연'],['time','시간·계절'],['number','숫자'],['thing','물건·생활'],['body','몸'],['verb','동사'],['adj','형용사']];
-  var LEVELS = [['N5', 'N5', '기초'], ['N4', 'N4', '초급'], ['all', 'N5+N4', '전부']];
+  var LEVELS = [['N5', 'N5', '기초'], ['N4', 'N4', '초급'], ['N3', 'N3', '중급'], ['all', '전부', 'N5~N3']];
   var MODES = [
     { id: 'meaning', icon: '<span class="ic jp" lang="ja">あ</span>', label: '뜻 맞히기', desc: '일본어 단어를 보고 한국어 뜻을 골라요', ask: '이 단어의 뜻은?' },
     { id: 'word', icon: '<span class="ic ko">가</span>', label: '단어 맞히기', desc: '한국어 뜻을 보고 일본어 단어를 골라요', ask: '이 뜻의 일본어는?' },
@@ -31,7 +31,7 @@
         kanji: segs.some(function (x) { return x.r; }) };
     };
   }
-  var W = (window.WORDS || []).map(mk('N5')).concat((window.WORDS_N4 || []).map(mk('N4')));
+  var W = (window.WORDS || []).map(mk('N5')).concat((window.WORDS_N4 || []).map(mk('N4'))).concat((window.WORDS_N3 || []).map(mk('N3')));
   function jp(w, furi) {
     var segs = w.segs || parse(w);
     return segs.map(function (x) { return x.r && furi !== false ? '<ruby>' + x.t + '<rt>' + x.r + '</rt></ruby>' : x.t; }).join('');
@@ -157,7 +157,7 @@
     $('homePet').style.width = '100px';
     $('levels').innerHTML = LEVELS.map(function (l) {
       var n = W.filter(function (w) { return inLevel(w, l[0]); }).length;
-      return '<button type="button" class="level press" data-level="' + l[0] + '" aria-pressed="' + (settings.level === l[0]) + '"><b>' + l[1] + '</b><span>' + l[2] + ' · ' + n + '단어</span></button>';
+      return '<button type="button" class="level press" data-level="' + l[0] + '" aria-pressed="' + (settings.level === l[0]) + '"><b>' + l[1] + '</b><span>' + l[2] + '</span><span>' + n + '단어</span></button>';
     }).join('');
     $('modes').innerHTML = MODES.map(function (md) {
       return '<button type="button" class="mode press" role="radio" data-mode="' + md.id + '" aria-checked="' + (settings.mode === md.id) + '">' + md.icon + '<span class="tx"><strong>' + md.label + '</strong><small>' + md.desc + '</small></span><span class="check"></span></button>';
@@ -190,6 +190,7 @@
     settings.level = b.dataset.level;
     if (!poolFor(settings.cat, 'meaning').length) settings.cat = 'all';
     save('jw-settings', settings); renderHome();
+    if (window.APP && window.APP.onLevel) window.APP.onLevel();
   });
   $('modes').addEventListener('click', function (e) { var b = e.target.closest('[data-mode]'); if (!b) return; settings.mode = b.dataset.mode; save('jw-settings', settings); renderHome(); });
   $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-cat]'); if (!b) return; settings.cat = b.dataset.cat; save('jw-settings', settings); renderHome(); });
@@ -420,6 +421,7 @@
   window.APP = {
     W: W, GEM: GEM, levelPool: levelPool, jp: jp, jpSpan: jpSpan, shuffle: shuffle, speak: speak, toast: toast, show: show, go: go,
     petSVG: function (face) { return petSVG(face); },
+    level: function () { return settings.level; },
     award: function (n) { if (n > 0) { S.gems += n; saveS(); updateGems(true); } }
   };
 

@@ -11,7 +11,7 @@
     <header class="hero">
       <span class="gems gem-chip"></span>
       <div class="hero-text">
-        <span class="badge">JLPT N5 · N4 단어 <span id="total"></span>개</span>
+        <span class="badge">JLPT N5~N3 단어 <span id="total"></span>개 · 문장 90개</span>
         <h1>일본어 단어 카드</h1>
         <p class="lede">정답을 맞히면 보석을 받아요. 보석으로 펫 방을 꾸며 봐요!</p>
       </div>
@@ -48,6 +48,13 @@
       <button class="primary" id="start" type="button">시작하기 · 10문제</button>
       <button class="secondary" id="startReview" type="button" hidden></button>
     </div>
+
+    <h2>문장 공부</h2>
+    <div class="mini-list" id="sentList"></div>
+    <details class="list" id="sentBox">
+      <summary>문장 모아 보기</summary>
+      <div id="sentBrowse"></div>
+    </details>
 
     <h2>미니게임</h2>
     <div class="mini-list" id="miniList"></div>
@@ -188,6 +195,7 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="words.js"></script>
+<script src="sentences.js"></script>
 <script src="shop.js"></script>
 <script src="app.js"></script>
 <script src="minigames.js"></script>

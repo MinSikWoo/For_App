@@ -245,7 +245,7 @@ details.list[open] summary::after { transform: rotate(45deg); }
 .pet-slot { flex: none; cursor: pointer; background: none; border: 0; padding: 0; }
 .pet-slot svg { display: block; overflow: visible; }
 
-.levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .level { border: 0; border-radius: 18px; padding: 10px 6px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); display: flex; flex-direction: column; align-items: center; gap: 0; }
 .level b { font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.2; }
 .level span { font-size: 12px; color: var(--muted); }
@@ -419,3 +419,32 @@ details.list[open] summary::after { transform: rotate(45deg); }
 .ls-play:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--momo-deep); }
 #lsLabel { font-family: var(--display); font-size: 18px; }
 .ls-peek { font-size: 30px; }
+
+/* ===== v6: sentences ===== */
+.level span + span { font-size: 11px; }
+.s-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 16px; text-align: center; }
+.s-jp { font-size: 20px; line-height: 2.1; }
+.s-jp.big { font-size: clamp(22px, 6.4vw, 28px); }
+.s-jp rt, .so-chunk rt, .mini-hint rt { font-size: .5em; }
+.s-ko { color: var(--muted); }
+.s-ko.big { font-family: var(--display); font-size: 20px; color: var(--ink); }
+.s-say { padding: 6px 14px; }
+.s-opts { display: grid; gap: 8px; }
+.s-opt { min-height: 60px; justify-content: flex-start; text-align: left; padding: 12px 16px; font-size: 16px; }
+.blank { display: inline-block; min-width: 3.2em; border-bottom: 3px solid var(--mikan); color: var(--mikan); font-family: var(--display); margin: 0 .15em; line-height: 1.4; }
+.blank.filled { border-bottom-color: var(--matcha); color: inherit; background: var(--matcha-soft); border-radius: 6px 6px 0 0; padding: 0 .2em; }
+.so-answer { min-height: 74px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; padding: 10px; border-radius: 20px; border: 2.5px dashed var(--line); background: var(--card); }
+.so-answer.good { border-style: solid; border-color: var(--matcha); background: var(--matcha-soft); }
+.so-answer.bad { border-style: solid; border-color: var(--mikan); background: var(--mikan-soft); animation: shake .4s; }
+.so-empty { color: var(--muted); font-size: 14px; }
+.so-tiles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.so-chunk { border: 0; border-radius: 14px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); padding: 6px 12px; font-size: 19px; line-height: 2; }
+.so-chunk.on { background: var(--momo-soft); box-shadow: inset 0 0 0 2px var(--momo); }
+.so-chunk:disabled { opacity: .25; }
+.s-list { list-style: none; margin: 0; padding: 0; }
+.s-list li { padding: 10px 0; border-bottom: 1.5px dashed var(--line); display: flex; flex-direction: column; gap: 2px; }
+.s-list li:last-child { border-bottom: 0; }
+.s-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.s-row .s-ko { font-size: 14px; min-width: 0; }
+.s-row .pill { flex: none; padding: 4px 12px; font-size: 13px; }
+#mini .mini-hint .jp { font-size: 18px; line-height: 2; }

@@ -11,6 +11,9 @@
     bubble: '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="22" cy="34" r="15" fill="#E6F4FF" stroke="#5B4249" stroke-width="2.4"/><circle cx="42" cy="20" r="10" fill="#FFE7EC" stroke="#5B4249" stroke-width="2.4"/><circle cx="46" cy="44" r="6" fill="#FFF3D1" stroke="#5B4249" stroke-width="2"/><path d="M14 28 q3 -5 8 -6" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/></svg>',
     stones: '<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="2" y="36" width="56" height="20" rx="10" fill="#BFE6FF"/><ellipse cx="14" cy="44" rx="10" ry="5" fill="#D6D0E0" stroke="#5B4249" stroke-width="2.2"/><ellipse cx="44" cy="44" rx="10" ry="5" fill="#D6D0E0" stroke="#5B4249" stroke-width="2.2"/><path d="M14 30 Q29 8 44 30" fill="none" stroke="#FF8DA6" stroke-width="2.6" stroke-dasharray="4 4" stroke-linecap="round"/><circle cx="14" cy="32" r="7" fill="#FFD2A1" stroke="#5B4249" stroke-width="2.2"/></svg>',
     listen: '<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M14 24 h8 l10 -9 v30 l-10 -9 h-8z" fill="#FFE590" stroke="#5B4249" stroke-width="2.4" stroke-linejoin="round"/><path d="M38 22 a10 10 0 0 1 0 16 M43 16 a17 17 0 0 1 0 28" fill="none" stroke="#5B4249" stroke-width="2.6" stroke-linecap="round"/></svg>',
+    smeaning: '<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="6" y="12" width="48" height="22" rx="8" fill="#FFE7EC" stroke="#5B4249" stroke-width="2.4"/><text x="30" y="23.5" font-size="11" text-anchor="middle" dominant-baseline="central" font-family="Zen Maru Gothic, sans-serif" font-weight="700" fill="#5B4249">です。</text><rect x="12" y="38" width="36" height="12" rx="6" fill="#E6F4FF" stroke="#5B4249" stroke-width="2"/></svg>',
+    sfill: '<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="6" y="18" width="48" height="24" rx="8" fill="#FFFFFF" stroke="#5B4249" stroke-width="2.4"/><rect x="22" y="23" width="16" height="14" rx="4" fill="#FFF3D1" stroke="#F0844F" stroke-width="2" stroke-dasharray="3 2"/><text x="30" y="30.5" font-size="11" text-anchor="middle" dominant-baseline="central" font-family="Jua, sans-serif" fill="#F0844F">?</text></svg>',
+    sorder: '<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="4" y="22" width="16" height="16" rx="4" fill="#C9F0B8" stroke="#5B4249" stroke-width="2.2"/><rect x="22" y="22" width="16" height="16" rx="4" fill="#FFE590" stroke="#5B4249" stroke-width="2.2"/><rect x="40" y="22" width="16" height="16" rx="4" fill="#BFE6FF" stroke="#5B4249" stroke-width="2.2"/><text x="12" y="30.5" font-size="9" text-anchor="middle" dominant-baseline="central" font-family="Jua, sans-serif" fill="#5B4249">1</text><text x="30" y="30.5" font-size="9" text-anchor="middle" dominant-baseline="central" font-family="Jua, sans-serif" fill="#5B4249">2</text><text x="48" y="30.5" font-size="9" text-anchor="middle" dominant-baseline="central" font-family="Jua, sans-serif" fill="#5B4249">3</text></svg>',
     puzzle: '<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="6" y="18" width="22" height="24" rx="6" fill="#FFE590" stroke="#5B4249" stroke-width="2.4"/><rect x="32" y="18" width="22" height="24" rx="6" fill="#BFE6FF" stroke="#5B4249" stroke-width="2.4"/><text x="17" y="30" font-size="14" text-anchor="middle" dominant-baseline="central" font-family="Zen Maru Gothic, sans-serif" font-weight="700" fill="#5B4249">ね</text><text x="43" y="30" font-size="14" text-anchor="middle" dominant-baseline="central" font-family="Zen Maru Gothic, sans-serif" font-weight="700" fill="#5B4249">こ</text></svg>'
   };
   var GAMES = {
@@ -19,14 +22,21 @@
     puzzle: { name: '읽기 퍼즐', desc: '히라가나 조각으로 한자 읽는 법을 맞춰요', reward: '최대 10개', start: startPuzzle },
     bubble: { name: '방울 터뜨리기', desc: '떠오르는 방울 중에서 뜻에 맞는 단어를 톡!', reward: '최대 11개', start: startBubble, isNew: true },
     stones: { name: '징검다리 건너기', desc: '맞는 뜻의 돌을 골라 펫과 함께 강을 건너요', reward: '최대 13개', start: startStones, isNew: true },
-    listen: { name: '듣고 고르기', desc: '일본어 발음을 듣고 맞는 단어를 골라요', reward: '최대 11개', start: startListen, isNew: true }
+    listen: { name: '듣고 고르기', desc: '일본어 발음을 듣고 맞는 단어를 골라요', reward: '최대 11개', start: startListen },
+    smeaning: { group: 'sentence', name: '문장 뜻 고르기', desc: '일본어 문장을 읽고 알맞은 한국어 뜻을 골라요', reward: '최대 13개', start: startSMeaning },
+    sfill: { group: 'sentence', name: '빈칸 채우기', desc: '뜻을 보고 문장의 빈칸에 들어갈 말을 골라요', reward: '최대 13개', start: startSFill },
+    sorder: { group: 'sentence', name: '문장 만들기', desc: '조각을 순서대로 놓아 일본어 문장을 완성해요', reward: '최대 12개', start: startSOrder }
   };
 
   // ---------- 공통 ----------
-  $('miniList').innerHTML = Object.keys(GAMES).map(function (k) {
+  function card(k) {
     var g = GAMES[k];
     return '<button type="button" class="mini-card press" data-mini="' + k + '"><span class="mini-ic">' + ICON[k] + '</span><span class="tx"><strong>' + g.name + (g.isNew ? ' <em class="new-tag">NEW</em>' : '') + '</strong><small>' + g.desc + '</small></span><span class="mini-rw">' + A.GEM + g.reward + '</span></button>';
-  }).join('');
+  }
+  var keys = Object.keys(GAMES);
+  $('miniList').innerHTML = keys.filter(function (k) { return !GAMES[k].group; }).map(card).join('');
+  $('sentList').innerHTML = keys.filter(function (k) { return GAMES[k].group === 'sentence'; }).map(card).join('');
+  $('sentList').addEventListener('click', function (e) { var b = e.target.closest('[data-mini]'); if (b) open(b.dataset.mini); });
   $('miniList').addEventListener('click', function (e) { var b = e.target.closest('[data-mini]'); if (b) open(b.dataset.mini); });
   $('miniQuit').addEventListener('click', function () { stop(); A.go('home'); });
   $('miniHome').addEventListener('click', function () { stop(); A.go('home'); });
@@ -361,6 +371,159 @@
         else round();
       }, 1300);
     });
+    round();
+  }
+
+  // ================= 문장 공부 =================
+  var SENT = window.SENTENCES || {};
+  var FURI = /\{([^|}]+)\|([^}]+)\}/g;
+  var FREE = /(を|に|で|へ|と|が|も|から|まで)$/;
+  function sRuby(t) { return '<span class="jp" lang="ja">' + t.replace(FURI, '<ruby>$1<rt>$2</rt></ruby>') + '</span>'; }
+  function sPlain(t) { return t.replace(FURI, '$1'); }
+  function sMake(lv) {
+    return function (a) {
+      var raw = a[0], m = raw.match(/\[([^\]]+)\]/), clean = raw.replace(/[\/\[\]]/g, '');
+      return { raw: raw, ko: a[1], lv: lv, blank: m ? m[1] : '', clean: clean, reading: clean.replace(FURI, '$2'), chunks: raw.replace(/[\[\]]/g, '').split('/') };
+    };
+  }
+  var SALL = ['N5', 'N4', 'N3'].reduce(function (a, lv) { return a.concat((SENT[lv] || []).map(sMake(lv))); }, []);
+  function sPool() {
+    var lv = A.level ? A.level() : 'all';
+    var p = SALL.filter(function (x) { return lv === 'all' || x.lv === lv; });
+    return p.length >= 6 ? p : SALL;
+  }
+  function sBlankHTML(x, fill) {
+    var parts = x.raw.replace(/\//g, '').split(/\[[^\]]+\]/);
+    var mid = fill ? '<span class="blank filled">' + sRuby(x.blank) + '</span>' : '<span class="blank">？</span>';
+    return sRuby(parts[0]) + mid + sRuby(parts[1] || '');
+  }
+  function sayBtn(id) { return '<button type="button" class="pill press s-say" id="' + id + '" aria-label="문장 듣기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg><span>듣기</span></button>'; }
+  function mark(box, isRight, picked) {
+    var btns = box.children;
+    for (var k = 0; k < btns.length; k++) { btns[k].disabled = true; if (isRight(k)) btns[k].classList.add('right'); else if (btns[k] === picked) btns[k].classList.add('wrong'); else btns[k].classList.add('dim'); }
+  }
+
+  // 문장 모아 보기
+  function renderBrowse() {
+    var lv = A.level ? A.level() : 'all';
+    $('sentBrowse').innerHTML = ['N5', 'N4', 'N3'].filter(function (l) { return lv === 'all' || l === lv; }).map(function (l) {
+      return '<div class="wl-group"><h3>' + l + ' 문장</h3><ul class="s-list">' + SALL.filter(function (x) { return x.lv === l; }).map(function (x) {
+        return '<li><div class="s-jp">' + sRuby(x.clean) + '</div><div class="s-row"><span class="s-ko">' + x.ko + '</span><button type="button" class="pill press" data-say="' + SALL.indexOf(x) + '">듣기</button></div></li>';
+      }).join('') + '</ul></div>';
+    }).join('');
+  }
+  $('sentBox').addEventListener('toggle', function () { if ($('sentBox').open) renderBrowse(); });
+  $('sentBrowse').addEventListener('click', function (e) { var b = e.target.closest('[data-say]'); if (b) A.speak(SALL[+b.dataset.say].reading); });
+  A.onLevel = function () { if ($('sentBox').open) renderBrowse(); };
+  function sEnd(got, total) {
+    finish(got === total ? '문장 박사예요!' : got >= total * .7 ? '아주 잘했어요!' : '조금씩 늘고 있어요!', total + '문제 중 ' + got + '개', got + (got === total ? 3 : 0));
+  }
+
+  // ---------- 문장 뜻 고르기 ----------
+  function startSMeaning() {
+    var list = sPool(), qs = A.shuffle(list).slice(0, 10), st = { r: 0, got: 0 };
+    $('miniBody').innerHTML = '<p class="mini-stat" id="smStat"></p><div class="s-card card"><div class="s-jp big" id="smJp"></div>' + sayBtn('smSay') + '</div>' +
+      '<div class="s-opts" id="smOpts"></div><button type="button" class="primary" id="smNext" hidden>다음</button>';
+    $('smSay').addEventListener('click', function () { A.speak(qs[st.r].reading); });
+    function round() {
+      var x = qs[st.r], others = A.shuffle(list.filter(function (y) { return y !== x && y.ko !== x.ko; })).slice(0, 3);
+      st.opts = A.shuffle([x].concat(others)); st.done = false;
+      $('smStat').textContent = (st.r + 1) + ' / ' + qs.length + ' · 맞힌 개수 ' + st.got;
+      $('smJp').innerHTML = sRuby(x.clean);
+      $('smOpts').innerHTML = st.opts.map(function (o, i) { return '<button type="button" class="opt s-opt" data-i="' + i + '">' + o.ko + '</button>'; }).join('');
+      $('smNext').hidden = true;
+    }
+    $('smOpts').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-i]'); if (!b || st.done) return; st.done = true;
+      var x = qs[st.r];
+      if (st.opts[+b.dataset.i] === x) st.got++;
+      mark($('smOpts'), function (k) { return st.opts[k] === x; }, b);
+      A.speak(x.reading);
+      $('smNext').hidden = false; $('smNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음';
+    });
+    $('smNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) sEnd(st.got, qs.length); else { round(); window.scrollTo(0, 0); } });
+    round();
+  }
+
+  // ---------- 빈칸 채우기 ----------
+  function startSFill() {
+    var list = sPool(), qs = A.shuffle(list).slice(0, 10), st = { r: 0, got: 0 };
+    $('miniBody').innerHTML = '<p class="mini-stat" id="sfStat"></p><div class="s-card card"><div class="s-ko big" id="sfKo"></div><div class="s-jp big" id="sfJp"></div><span id="sfSayBox"></span></div>' +
+      '<div class="options" id="sfOpts"></div><button type="button" class="primary" id="sfNext" hidden>다음</button>';
+    $('sfSayBox').innerHTML = sayBtn('sfSay');
+    $('sfSay').addEventListener('click', function () { A.speak(qs[st.r].reading); });
+    function round() {
+      var x = qs[st.r], used = {}, others = [];
+      used[sPlain(x.blank)] = 1;
+      A.shuffle(SALL.filter(function (y) { return y !== x; })).forEach(function (y) { var k = sPlain(y.blank); if (others.length < 3 && !used[k]) { used[k] = 1; others.push(y.blank); } });
+      st.opts = A.shuffle([x.blank].concat(others)); st.done = false;
+      $('sfStat').textContent = (st.r + 1) + ' / ' + qs.length + ' · 맞힌 개수 ' + st.got;
+      $('sfKo').textContent = x.ko; $('sfJp').innerHTML = sBlankHTML(x, false);
+      $('sfOpts').innerHTML = st.opts.map(function (o, i) { return '<button type="button" class="opt" data-i="' + i + '"><span class="num">' + (i + 1) + '</span>' + sRuby(o) + '</button>'; }).join('');
+      $('sfNext').hidden = true; $('sfSay').hidden = true;
+    }
+    $('sfOpts').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-i]'); if (!b || st.done) return; st.done = true;
+      var x = qs[st.r];
+      if (st.opts[+b.dataset.i] === x.blank) st.got++;
+      mark($('sfOpts'), function (k) { return st.opts[k] === x.blank; }, b);
+      $('sfJp').innerHTML = sBlankHTML(x, true); A.speak(x.reading);
+      $('sfSay').hidden = false;
+      $('sfNext').hidden = false; $('sfNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음';
+    });
+    $('sfNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) sEnd(st.got, qs.length); else { round(); window.scrollTo(0, 0); } });
+    round();
+  }
+
+  // ---------- 문장 만들기 ----------
+  function startSOrder() {
+    var list = sPool(), long = list.filter(function (x) { return x.chunks.length >= 3; });
+    var qs = A.shuffle(long.length >= 6 ? long : list).slice(0, 6), st = { r: 0, got: 0, gems: 0 };
+    var HINT = '조각을 순서대로 눌러 문장을 만들어요. 놓은 조각을 누르면 돌아가요';
+    $('miniBody').innerHTML = '<p class="mini-stat" id="soStat"></p><div class="s-card card"><div class="s-ko big" id="soKo"></div></div>' +
+      '<div class="so-answer" id="soAns"></div><div class="so-tiles" id="soTiles"></div>' +
+      '<p class="mini-hint" id="soFb"></p><button type="button" class="primary" id="soNext" hidden>다음</button>';
+    function isFree(c) { return FREE.test(sPlain(c)); }
+    // 조사로 끝나는 조각끼리는 순서가 바뀌어도 맞는 문장이라 정답으로 인정
+    function correct(x, order) { return order.every(function (c, i) { var o = x.chunks[i]; return isFree(o) ? isFree(c) : c === o; }); }
+    function round() {
+      var x = qs[st.r], tiles;
+      do { tiles = A.shuffle(x.chunks.map(function (c, i) { return i; })); } while (x.chunks.length > 1 && correct(x, tiles.map(function (t) { return x.chunks[t]; })));
+      st.tiles = tiles; st.placed = []; st.tries = 0; st.done = false;
+      $('soStat').textContent = (st.r + 1) + ' / ' + qs.length + ' · 완성한 문장 ' + st.got;
+      $('soKo').textContent = x.ko; $('soNext').hidden = true; $('soFb').textContent = HINT;
+      draw();
+    }
+    function draw() {
+      var x = qs[st.r];
+      $('soAns').className = 'so-answer';
+      $('soAns').innerHTML = st.placed.length ? st.placed.map(function (t, i) { return '<button type="button" class="so-chunk on" data-p="' + i + '">' + sRuby(x.chunks[t]) + '</button>'; }).join('') : '<span class="so-empty">여기에 문장이 만들어져요</span>';
+      $('soTiles').innerHTML = st.tiles.map(function (t) { return '<button type="button" class="so-chunk press" data-t="' + t + '"' + (st.placed.indexOf(t) >= 0 ? ' disabled' : '') + '>' + sRuby(x.chunks[t]) + '</button>'; }).join('');
+    }
+    function check() {
+      var x = qs[st.r]; if (st.placed.length < x.chunks.length) return;
+      $('soNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음';
+      if (correct(x, st.placed.map(function (t) { return x.chunks[t]; }))) {
+        st.done = true; st.got++; var g = st.tries === 0 ? 2 : 1; st.gems += g;
+        $('soAns').className = 'so-answer good';
+        $('soFb').innerHTML = (st.tries === 0 ? '한 번에 완성! ' : '완성! ') + '보석 +' + g + '<br>' + sRuby(x.clean);
+        A.speak(x.reading); $('soNext').hidden = false;
+        return;
+      }
+      st.tries++;
+      $('soAns').className = 'so-answer bad';
+      if (st.tries >= 2) {
+        st.done = true;
+        $('soFb').innerHTML = '정답은 이렇게 돼요<br>' + sRuby(x.clean);
+        A.speak(x.reading); $('soNext').hidden = false;
+      } else {
+        $('soFb').textContent = '순서가 조금 달라요. 한 번 더!';
+        later(function () { st.placed = []; draw(); }, 700);
+      }
+    }
+    $('soTiles').addEventListener('click', function (e) { var b = e.target.closest('[data-t]'); if (!b || st.done) return; st.placed.push(+b.dataset.t); draw(); check(); });
+    $('soAns').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b || st.done) return; st.placed.splice(+b.dataset.p, 1); draw(); });
+    $('soNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) finish(st.got === qs.length ? '문장 박사예요!' : '잘했어요!', qs.length + '문장 중 ' + st.got + '개 완성', st.gems); else { round(); window.scrollTo(0, 0); } });
     round();
   }
 })();
