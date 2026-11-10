@@ -456,3 +456,7 @@ details.list[open] summary::after { transform: rotate(45deg); }
 .settings.move .pill { justify-self: start; }
 .settings.move textarea { width: 100%; box-sizing: border-box; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); font: 12px/1.4 ui-monospace, monospace; padding: 8px 10px; resize: vertical; word-break: break-all; }
 .move-msg { font-size: 13.5px; color: var(--momo-deep); min-height: 1.4em; margin: 0; }
+
+/* ===== v8: update notice ===== */
+.update-bar { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 40; display: flex; align-items: center; gap: 10px; width: max-content; max-width: calc(100% - 32px); background: var(--ink); color: var(--paper); padding: 7px 7px 7px 16px; border-radius: 999px; box-shadow: 0 10px 24px -10px rgba(0,0,0,.45); font-size: 14.5px; animation: rise .3s ease; }
+.update-bar button { border: 0; border-radius: 999px; background: var(--momo); color: #FFFFFF; font-family: var(--display); font-size: 15px; padding: 6px 14px; white-space: nowrap; }

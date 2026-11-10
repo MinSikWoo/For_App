@@ -51,6 +51,8 @@
     var b = document.getElementById('install'); if (b) b.hidden = false;
   });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  // 앱을 쓰던 중 새 버전이 설치되면 표시해 둠 (게임 화면이 이걸 보고 '새 버전' 알림을 띄움)
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.addEventListener('controllerchange', function () { window.__swUpdated = true; });
   function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
   function toB64(buf) { var s = '', a = new Uint8Array(buf); for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }

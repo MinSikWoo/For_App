@@ -430,6 +430,19 @@
   });
   showInstall();
 
+  // ---------- 새 버전 알림 (설치한 앱 / GitHub Pages) ----------
+  (function () {
+    if (!('serviceWorker' in navigator)) return;
+    var sw = navigator.serviceWorker;
+    function showUpdate() { $('updateBar').hidden = false; }
+    if (window.__swUpdated) showUpdate();                       // 잠금 화면에 있을 때 이미 새 버전을 받은 경우
+    if (sw.controller) sw.addEventListener('controllerchange', showUpdate);
+    function check() { try { sw.getRegistration().then(function (r) { if (r) r.update(); }).catch(function () {}); } catch (e) {} }
+    check();
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') check(); });
+    $('updateBtn').addEventListener('click', function () { $('updateBtn').textContent = '업데이트 중…'; location.reload(); });
+  })();
+
   // ---------- 기록 옮기기 ----------
   var CODE_HEAD = 'JWC1:';
   $('exportBtn').addEventListener('click', function () {
