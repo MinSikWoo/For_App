@@ -316,7 +316,8 @@ async function wordGame(page, P, { level, mode, cat, review = false, style = 'ta
   if (!res.rg.includes('+' + expGem)) find('gem-word-label', '중간', '결과 화면', '결과 화면의 보석 숫자가 실제와 다름', `${res.rg} vs ${expGem}`);
   if (res.rc !== `${correct}/${n}`) find('rcorrect', '중간', '결과 화면', '맞힌 문제 수가 다름', `${res.rc} vs ${correct}/${n}`);
   if (res.wrong !== wrongIds.length) find('rwrong', '중간', '결과 화면', '틀린 단어 목록 개수가 다름', `${res.wrong} vs ${wrongIds.length}`);
-  if (!review && n < 10) find('short-round:' + lv + ':' + cat + ':' + md, '낮음', '단어 게임', "‘10문제’라고 했는데 문제가 10개보다 적음", `레벨 ${lv}, 범위 ${cat}, 방식 ${md}: ${n}문제`);
+  const label = await page.evaluate(() => document.getElementById('start').textContent);
+  if (!review && !label.includes(n + '문제')) find('short-round:' + lv + ':' + cat + ':' + md, '낮음', '단어 게임', '시작 버튼의 문제 수와 실제 문제 수가 다름', `레벨 ${lv}, 범위 ${cat}, 방식 ${md}: 버튼 ‘${label}’, 실제 ${n}문제`);
   await layout(page, 'result');
   log(`    단어게임 ${tag} lv=${lv} mode=${md} cat=${cat} ${correct}/${n} 보석 +${got} (예상 ${expGem})`);
   return { correct, n, wrongIds };
@@ -646,7 +647,7 @@ async function shopping(page, P, { buyAllSlots = false, dbl = false } = {}) {
         await sleep(200);
         const own = await page.evaluate(id => !!JSON.parse(localStorage.getItem('jw-pet')).owned[id], cheap.id);
         if (own) find('shop-dbl-buy', '낮음', '상점', '물건을 두 번 빠르게 톡톡 누르면 확인 없이 바로 사짐', `${cheap.id} (${cheap.price}개) — ‘한 번 더 누르면 구매’ 문구를 읽을 틈이 없음`, { shot: await fshot('shop-dbl-buy', page, 'shop_dblbuy') });
-        else { await tap(page, `[data-item="${cheap.id}"]`, P); }
+        else { good('상점: 두 번 빠르게 톡톡 눌러도 확인 없이 사지지 않음 (실수 방지)'); await sleep(450); await tap(page, `[data-item="${cheap.id}"]`, P); }
       } else {
         await tap(page, `[data-item="${cheap.id}"]`, P);
         const pr = await page.locator(`[data-item="${cheap.id}"] .pr`).innerText();
@@ -708,7 +709,7 @@ async function room(page, P) {
     const S = JSON.parse(localStorage.getItem('jw-pet'));
     const box = document.getElementById('roomBox').getBoundingClientRect();
     const out = [];
-    ['rug', 'deco', 'ceil', 'plant', 'furn', 'toy', 'food'].forEach(s => { const e = document.getElementById('slot-' + s); const b = e.getBoundingClientRect(); out.push({ s, equip: S.equip[s] || null, shown: !e.hidden && b.width > 2, inside: b.left >= box.left - 6 && b.right <= box.right + 6 && b.top >= box.top - 6 && b.bottom <= box.bottom + 6, rect: [b.left, b.top, b.width, b.height].map(Math.round) }); });
+    ['rug', 'deco', 'ceil', 'plant', 'furn', 'toy', 'food'].forEach(s => { const e = document.getElementById('slot-' + s); const kids = [...e.querySelectorAll('svg > *')].map(k => k.getBoundingClientRect()).filter(k => k.width > 0); const b = kids.length ? { left: Math.min(...kids.map(k => k.left)), top: Math.min(...kids.map(k => k.top)), right: Math.max(...kids.map(k => k.right)), bottom: Math.max(...kids.map(k => k.bottom)), get width() { return this.right - this.left; }, get height() { return this.bottom - this.top; } } : e.getBoundingClientRect(); out.push({ s, equip: S.equip[s] || null, shown: !e.hidden && b.width > 2, inside: b.left >= box.left - 6 && b.right <= box.right + 6 && b.top >= box.top - 6 && b.bottom <= box.bottom + 6, rect: [b.left, b.top, b.width, b.height].map(Math.round) }); });
     return { out, box: [box.left, box.top, box.width, box.height].map(Math.round) };
   });
   const sp = await shot(page, 'room');
@@ -1168,7 +1169,8 @@ async function globalTests(seed) {
   if (!(await vis(p4, '#news'))) find('news-missing', '중간', '새로워진 점', '이전 버전을 쓰던 사람에게 ‘새로워진 점’ 창이 안 뜸', 'seen=1.7.0');
   else {
     const n = await p4.locator('#newsBody .log-item').count();
-    if (n !== 2) find('news-count', '낮음', '새로워진 점', '못 본 버전 수만큼 내용이 안 나옴', `1.7.0 → 1.9.0 인데 ${n}개`);
+    const exp = Math.min(3, await p4.evaluate(() => window.CHANGELOG.findIndex(e => e.v === '1.7.0')));   // 최대 3개까지 보여주는 것이 정해진 동작
+    if (n !== exp) find('news-count', '낮음', '새로워진 점', '못 본 버전 수만큼 내용이 안 나옴', `1.7.0 이후 ${exp}개여야 하는데 ${n}개`);
     const nsp = await shot(p4, 'news');
     await layout(p4, 'news');
     good('새로워진 점: 지난번에 본 버전 이후 바뀐 점만 모아 보여줌');
@@ -1211,6 +1213,9 @@ async function globalTests(seed) {
     await layout(p5, 'update_bar_play'); await shot(p5, 'update_bar_play');
     const quitHit = await p5.evaluate(() => { const b = document.getElementById('quit').getBoundingClientRect(); const e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return e && e.closest('#quit') ? 'ok' : (e && (e.id || e.className)); });
     if (quitHit !== 'ok') find('update-bar-covers-quit', '높음', '업데이트 알림', '게임 중에 업데이트 알림이 ‘그만하기’ 버튼과 점수를 덮어 누를 수 없음', '알림이 뜬 상태로 단어 게임/미니게임을 시작하면 ‘그만하기’를 누르면 알림이 눌림 (' + quitHit + ')', { shot: await shot(p5, 'update_bar_covers_quit') });
+    if (quitHit === 'ok') good('업데이트 알림: 게임 중에는 알림이 숨어서 ‘그만하기’를 가리지 않음');
+    await p5.locator('#quit').click(); await waitVis(p5, '#home');
+    if (!(await vis(p5, '#updateBar'))) find('update-bar-gone', '중간', '업데이트 알림', '게임을 끝내고 돌아오면 업데이트 알림이 사라져 있음', '');
     await p5.locator('#updateBtn').click();
     await p5.waitForFunction(() => (document.getElementById('f') && !document.getElementById('f').hidden) || (document.getElementById('home') && !document.getElementById('home').hidden), null, { timeout: 15000 }).catch(() => {});
     await sleep(800);
@@ -1220,7 +1225,7 @@ async function globalTests(seed) {
   // 잠금 화면에 있는 동안 새 버전이 깔리는 경우
   fs.writeFileSync(swp, fs.readFileSync(swp, 'utf8').replace(/var VERSION = '[^']+'/, `var VERSION = 'jw-qa2-${Date.now()}'`));
   fs.writeFileSync(path.join(site, 'cards', 'version.json'), JSON.stringify({ v: '9.9.10', date: '2026-12-02', title: 'QA 두 번째', items: ['시험'] }));
-  await p5.evaluate(() => localStorage.removeItem('jw-unlock-key'));
+  await p5.evaluate(() => { localStorage.removeItem('jw-unlock-key'); sessionStorage.removeItem('jw-unlock-key'); });   // 같은 창 자동 열림(v1.10.0)도 끔
   await p5.reload();
   await waitVis(p5, '#f');
   await sleep(3000);       // 잠금 화면에서 기다리는 동안 새 서비스 워커가 깔림

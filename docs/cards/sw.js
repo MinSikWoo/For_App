@@ -1,5 +1,5 @@
 // 오프라인 실행용. 한 번 열면 파일을 휴대폰에 저장해 두고, 인터넷이 되면 새 버전으로 조용히 바꿔 둔다.
-var VERSION = 'jw-00911499079f';
+var VERSION = 'jw-d8a6fced208c';
 var CORE = ['./', './index.html', './app.enc', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', function (e) {
