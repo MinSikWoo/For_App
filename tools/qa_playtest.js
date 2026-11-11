@@ -612,6 +612,7 @@ async function goTab(page, t, P) {
   if (await vis(page, '#play')) await tap(page, '#quit', P);
   if (await vis(page, '#miniBody')) await tap(page, '#miniQuit', P);
   if (await vis(page, '#miniEnd')) await tap(page, '#miniHome', P);
+  if (await vis(page, '#result')) await sleep(800);   // 결과 화면 직후 0.7초는 메뉴가 막힘 (두 번 누름 방지)
   await tap(page, `[data-tab="${t}"]`, P); await waitVis(page, '#' + t); }
 async function shopTab(page, slot, P) { await page.locator(`[data-shop="${slot}"]`).scrollIntoViewIfNeeded(); await tap(page, `[data-shop="${slot}"]`, P); }
 async function shopping(page, P, { buyAllSlots = false, dbl = false } = {}) {
@@ -656,6 +657,7 @@ async function shopping(page, P, { buyAllSlots = false, dbl = false } = {}) {
           if (/한 번 더/.test(pr2)) find('shop-arm-timeout', '낮음', '상점', '4초가 지나도 구매 대기 상태가 안 풀림', pr2);
           await tap(page, `[data-item="${cheap.id}"]`, P);
         }
+        await sleep(450);   // 0.4초 안의 두 번째 터치는 실수 방지로 무시되므로
         await tap(page, `[data-item="${cheap.id}"]`, P);
       }
       await sleep(200);
@@ -740,7 +742,7 @@ async function room(page, P) {
 // =====================================================================
 async function lockScreenTests(P) {
   const ctx = await newCtx('beginner', CUR.seed);
-  const page = await ctx.newPage(); watch(page, '잠금 화면');
+  let page = await ctx.newPage(); watch(page, '잠금 화면');
   await page.goto(BASE);
   await waitVis(page, '#f');
   await layout(page, 'lock');
@@ -765,10 +767,18 @@ async function lockScreenTests(P) {
   await page.waitForSelector('#home:not([hidden])', { timeout: 20000 });
   let s = await store(page);
   if (s.key) find('lock-remember-off', '높음', '잠금 화면', '‘기억하기’를 껐는데 열쇠가 저장됨', '');
+  // 같은 창 새로고침(업데이트·기록 불러오기)은 다시 묻지 않는 것이 v1.10.0부터의 의도된 동작
   await page.reload();
   await page.waitForFunction(() => (document.getElementById('f') && !document.getElementById('f').hidden) || document.getElementById('home'));
-  if (await page.locator('#home').count()) find('lock-remember-off2', '높음', '잠금 화면', '‘기억하기’를 껐는데 다시 열면 비밀번호 없이 들어가짐', '');
-  else good('잠금 화면: ‘기억하기’를 끄면 다시 열 때 비밀번호를 물어봄');
+  if (await page.locator('#home').count()) good('잠금 화면: ‘기억하기’를 꺼도 같은 창 새로고침(업데이트 등)은 비밀번호를 다시 안 물어봄');
+  else find('lock-same-tab', '중간', '잠금 화면', '‘기억하기’를 끈 상태에서 업데이트·새로고침 뒤 비밀번호를 다시 물어봄', '');
+  // 앱을 닫고 다시 여는 것 = 새 창
+  const p2 = await ctx.newPage(); watch(p2, '잠금 화면');
+  await p2.goto(page.url());
+  await p2.waitForFunction(() => (document.getElementById('f') && !document.getElementById('f').hidden) || document.getElementById('home'));
+  if (await p2.locator('#home').count()) find('lock-remember-off2', '높음', '잠금 화면', '‘기억하기’를 껐는데 앱을 다시 열면 비밀번호 없이 들어가짐', '');
+  else good('잠금 화면: ‘기억하기’를 끄면 앱을 다시 열 때 비밀번호를 물어봄');
+  await page.close(); page = p2;
   // 기억하기 켜고 → 다시 열기
   await page.locator('#pw').fill(PW);
   await page.locator('#remember').check();

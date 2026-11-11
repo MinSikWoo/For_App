@@ -104,7 +104,7 @@
     }).catch(function () {
       btn.disabled = false; btn.textContent = '들어가기';
       $('err').textContent = '비밀번호가 틀렸어요.';
-      $('pw').focus(); $('pw').select();
+      $('pw').value = ''; $('pw').focus();
       $('f').classList.remove('shake'); void $('f').offsetWidth; $('f').classList.add('shake');
     });
   });
