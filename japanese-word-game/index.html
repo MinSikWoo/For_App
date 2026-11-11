@@ -1,0 +1,232 @@
+<title>일본어 단어 카드</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+
+<div class="update-bar" id="updateBar" role="status" hidden><span id="updateText">새 버전이 나왔어요!</span><button type="button" id="updateBtn">지금 업데이트</button></div>
+
+<div class="news" id="news" role="dialog" aria-modal="true" aria-labelledby="newsTitle" hidden>
+  <div class="news-card card">
+    <div class="pet-slot" id="newsPet" style="width:96px"></div>
+    <span class="badge" id="newsBadge"></span>
+    <h2 class="news-title" id="newsTitle">새로워진 점</h2>
+    <div class="news-body" id="newsBody"></div>
+    <button class="primary" type="button" id="newsOk">확인</button>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <!-- 공부 -->
+  <section id="home">
+    <header class="hero">
+      <span class="gems gem-chip"></span>
+      <div class="hero-text">
+        <span class="badge">JLPT N5~N3 단어 <span id="total"></span>개 · 문장 90개</span>
+        <h1>일본어 단어 카드</h1>
+        <p class="lede">정답을 맞히면 보석을 받아요. 보석으로 펫 방을 꾸며 봐요!</p>
+      </div>
+      <button class="pet-slot bob" id="homePet" type="button" aria-label="내 방으로 가기"></button>
+    </header>
+
+    <div class="today card">
+      <span class="tag">오늘의 단어</span>
+      <div class="today-word jp" lang="ja" id="todayWord"></div>
+      <div class="today-ko" id="todayKo"></div>
+      <div class="row">
+        <button class="pill press speak-btn" id="todaySpeak" type="button" aria-label="발음 듣기"></button>
+        <button class="pill alt press" id="todayNext" type="button">다른 단어</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat s1"><b id="sMastered">0</b><span>외운 단어</span></div>
+      <div class="stat s2"><b id="sReview">0</b><span>복습할 단어</span></div>
+      <div class="stat s3"><b id="sBest">0</b><span>최고 점수</span></div>
+    </div>
+    <div class="meter-wrap"><div class="meter" aria-hidden="true"><i id="masterBar"></i></div><span id="masterPct">0%</span></div>
+
+    <h2>단어 레벨</h2>
+    <div class="levels" id="levels"></div>
+
+    <h2>게임 방식</h2>
+    <div class="modes" id="modes" role="radiogroup" aria-label="게임 방식"></div>
+
+    <h2>단어 범위</h2>
+    <div class="chips" id="chips"></div>
+
+    <div style="display:grid;gap:12px;margin-top:6px">
+      <button class="primary" id="start" type="button">시작하기 · 10문제</button>
+      <button class="secondary" id="startReview" type="button" hidden></button>
+    </div>
+
+    <h2>문장 공부</h2>
+    <div class="mini-list" id="sentList"></div>
+    <details class="list" id="sentBox">
+      <summary>문장 모아 보기</summary>
+      <div id="sentBrowse"></div>
+    </details>
+
+    <h2>미니게임</h2>
+    <div class="mini-list" id="miniList"></div>
+
+    <h2>설정</h2>
+    <div class="settings">
+      <label class="switch"><input type="checkbox" id="optBrackets"><span class="knob"></span><span>후리가나에 괄호 표시 <span class="ex jp" lang="ja">例: <ruby>食<rt>た</rt></ruby>べる</span></span></label>
+      <label class="switch"><input type="checkbox" id="optSound"><span class="knob"></span><span>답을 고르면 발음 들려주기</span></label>
+    </div>
+
+    <button class="primary" id="installBtn" type="button" hidden>휴대폰에 앱으로 설치하기</button>
+
+    <h2>기록 옮기기</h2>
+    <div class="settings move">
+      <p class="ex">다른 링크나 다른 휴대폰으로 보석·펫·소품·공부 기록을 옮길 때 써요.</p>
+      <button class="pill press" id="exportBtn" type="button">① 지금 기록을 코드로 만들기</button>
+      <textarea id="exportCode" rows="3" readonly hidden aria-label="내 기록 코드"></textarea>
+      <button class="pill alt press" id="copyBtn" type="button" hidden>코드 복사하기</button>
+      <textarea id="importCode" rows="3" placeholder="② 옮겨 갈 곳에서 여기에 코드를 붙여넣기" aria-label="기록 코드 붙여넣기"></textarea>
+      <button class="pill press" id="importBtn" type="button">코드로 기록 불러오기</button>
+      <p class="move-msg" id="moveMsg" role="status"></p>
+    </div>
+
+    <details class="list" id="listBox">
+      <summary>전체 단어 보기</summary>
+      <div id="wordList"></div>
+    </details>
+
+    <details class="list" id="logBox">
+      <summary>업데이트 기록 <span class="ver-tag" id="verTag"></span></summary>
+      <div id="logList"></div>
+    </details>
+
+    <p class="foot">정답 1개 = 보석 1개, 3연속부터 2개, 5연속부터 3개. 8문제 이상 맞히면 보너스 5개, 10문제를 다 맞히면 보너스 10개! 미니게임으로도 보석을 받아요. 같은 단어를 3번 연속 맞히면 ‘외운 단어’가 돼요. 기록과 보석은 이 기기의 브라우저에만 저장돼요.</p>
+  </section>
+
+  <!-- 게임 -->
+  <section id="play" hidden>
+    <div class="hud">
+      <button class="ghost press" id="quit" type="button">그만하기</button>
+      <div class="hud-right"><span class="combo" id="combo"></span><span class="gems hud-gems" id="hudGems"></span><span class="score" id="score">0</span></div>
+    </div>
+    <div class="track" id="track" aria-label="진행"></div>
+    <div class="qcard card">
+      <p class="ask" id="ask"></p>
+      <div class="prompt" id="prompt"></div>
+      <svg class="mark" id="mark" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="44" transform="rotate(-100 50 50)"></circle>
+        <path d="M24 24 L76 76 M76 24 L24 76"></path>
+      </svg>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback" hidden>
+      <div class="coach">
+        <div class="pet-slot" id="coachPet" style="width:68px"></div>
+        <div class="bubble">
+          <div class="fb-head" id="fbHead"></div>
+          <div class="fb-word jp" lang="ja" id="fbWord"></div>
+          <div class="fb-meta">읽기 <b class="jp" lang="ja" id="fbReading"></b> · 뜻 <b id="fbKo"></b></div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="pill press speak-btn" id="fbSpeak" type="button" aria-label="발음 듣기"></button>
+        <button class="primary" id="next" type="button">다음</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 결과 -->
+  <section id="result" hidden>
+    <div class="result-hero card">
+      <div class="pet-slot" id="resultPet" style="width:116px"></div>
+      <span class="badge" id="rEyebrow">결과</span>
+      <h1 class="result-title" id="rTitle"></h1>
+      <span class="reward" id="rGems"></span>
+    </div>
+    <div class="stats">
+      <div class="stat s3"><b id="rScore">0</b><span>점수</span></div>
+      <div class="stat s1"><b id="rCorrect">0</b><span>맞힌 문제</span></div>
+      <div class="stat s2"><b id="rCombo">0</b><span>최고 연속</span></div>
+    </div>
+    <h2>이번에 틀린 단어</h2>
+    <div class="r-list"><ul class="wordlist" id="rWrong"></ul></div>
+    <div style="display:grid;gap:12px;margin-top:6px">
+      <button class="primary" id="again" type="button">한 번 더!</button>
+      <button class="secondary blue" id="toShop" type="button">보석 쓰러 상점 가기</button>
+    </div>
+  </section>
+
+  <!-- 미니게임 -->
+  <section id="mini" hidden>
+    <div class="hud">
+      <button class="ghost press" id="miniQuit" type="button">그만하기</button>
+      <span class="mini-title" id="miniTitle"></span>
+      <span class="gems hud-gems" id="miniGems"></span>
+    </div>
+    <div id="miniBody"></div>
+    <div id="miniEnd" hidden>
+      <div class="result-hero card">
+        <div class="pet-slot" id="miniPet" style="width:116px"></div>
+        <span class="badge" id="miniSub"></span>
+        <h1 class="result-title" id="miniHead"></h1>
+        <span class="reward" id="miniReward"></span>
+      </div>
+      <div style="display:grid;gap:12px;margin-top:16px">
+        <button class="primary" id="miniAgain" type="button">한 번 더!</button>
+        <button class="secondary blue" id="miniHome" type="button">처음으로</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 내 방 -->
+  <section id="room" hidden>
+    <div class="page-head"><h1>내 방</h1><span class="gems gem-chip"></span></div>
+    <div class="room" id="roomBox">
+      <div class="wall" id="roomWall"></div>
+      <div class="floor" id="roomFloor"></div>
+      <span class="slot slot-deco" id="slot-deco"></span>
+      <span class="slot slot-ceil" id="slot-ceil"></span>
+      <span class="slot slot-rug" id="slot-rug"></span>
+      <span class="slot slot-plant" id="slot-plant"></span>
+      <span class="slot slot-furn" id="slot-furn"></span>
+      <button class="room-pet" id="roomPet" type="button" aria-label="펫 쓰다듬기"></button>
+      <span class="slot slot-toy" id="slot-toy"></span>
+      <span class="slot slot-food" id="slot-food"></span>
+      <div class="say" id="say" hidden></div>
+    </div>
+    <div class="pet-name" id="petName"></div>
+    <p class="lede" style="margin-top:-10px">펫을 누르면 오늘의 단어를 알려줘요.</p>
+    <div class="room-actions">
+      <button class="primary" id="goDecorate" type="button">꾸미기</button>
+      <button class="secondary blue" id="goPets" type="button">펫 바꾸기</button>
+    </div>
+    <div class="collection" id="collection"></div>
+  </section>
+
+  <!-- 상점 -->
+  <section id="shop" hidden>
+    <div class="page-head"><h1>상점</h1><span class="gems gem-chip"></span></div>
+    <div class="shop-tabs" id="shopTabs"></div>
+    <div class="shop-bar">
+      <span id="shopHint"></span>
+      <label class="switch"><input type="checkbox" id="ownedOnly"><span class="knob"></span><span>가진 것만</span></label>
+    </div>
+    <div class="grid" id="shopGrid"></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="메뉴">
+  <div class="tabs-in">
+    <button class="tab" type="button" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 11.5h5"/></svg>공부</button>
+    <button class="tab" type="button" data-tab="room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-5.5h4V21"/></svg>내 방</button>
+    <button class="tab" type="button" data-tab="shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>상점</button>
+  </div>
+</nav>
+<div class="toast" id="toast" hidden></div>
+
+<script src="words.js"></script>
+<script src="changelog.js"></script>
+<script src="sentences.js"></script>
+<script src="shop.js"></script>
+<script src="app.js"></script>
+<script src="minigames.js"></script>

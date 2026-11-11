@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FF8DA6">
+<meta name="robots" content="noindex, nofollow">
+<title>일본어 단어 카드</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+  :root { --paper: #FFF6F4; --card: #FFFFFF; --ink: #45343F; --muted: #957F8C; --line: #F2DFE3; --momo: #FF8DA6; --momo-deep: #E0587C; --mikan: #F0844F; }
+  @media (prefers-color-scheme: dark) { :root { --paper: #241B22; --card: #30252E; --ink: #F8EAF0; --muted: #BBA3B2; --line: #45363F; --momo-deep: #FF8FAB; --mikan: #FFA178; color-scheme: dark; } }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); box-sizing: border-box; }
+  form { box-sizing: border-box; width: 100%; max-width: 340px; background: var(--card); border-radius: 28px; padding: 28px 22px 22px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 14px 30px -18px rgba(224, 88, 124, .5); }
+  img { width: 104px; height: 104px; border-radius: 28px; }
+  h1 { font-size: 22px; margin: 4px 0 0; }
+  p { margin: 0; color: var(--muted); font-size: 14px; text-align: center; }
+  input[type=password] { width: 100%; box-sizing: border-box; font-size: 18px; padding: 13px 16px; border-radius: 16px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); text-align: center; }
+  input[type=password]:focus { outline: none; border-color: var(--momo); }
+  label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); align-self: flex-start; }
+  button { width: 100%; border: 0; border-radius: 18px; padding: 14px; font-size: 18px; font-weight: 700; color: #FFFFFF; background: var(--momo); box-shadow: 0 5px 0 var(--momo-deep); cursor: pointer; }
+  button:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--momo-deep); }
+  button:disabled { opacity: .6; }
+  button.ghost { background: transparent; color: var(--momo-deep); box-shadow: inset 0 0 0 2px var(--momo); font-size: 16px; padding: 11px; }
+  button.ghost:active { transform: none; box-shadow: inset 0 0 0 2px var(--momo); }
+  .err { color: var(--mikan); font-weight: 700; min-height: 1.4em; }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+</style>
+</head>
+<body>
+<form id="f" hidden>
+  <img src="icons/icon-192.png" alt="">
+  <h1>일본어 단어 카드</h1>
+  <p>비밀번호를 아는 사람만 들어올 수 있어요.</p>
+  <input type="password" id="pw" autocomplete="current-password" placeholder="비밀번호" required>
+  <label><input type="checkbox" id="remember" checked> 이 휴대폰에서 기억하기</label>
+  <div class="err" id="err" role="alert"></div>
+  <button id="go" type="submit">들어가기</button>
+  <button id="install" type="button" class="ghost" hidden>휴대폰에 앱으로 설치하기</button>
+</form>
+<script>
+(function () {
+  var KEY = 'jw-unlock-key';
+  // 크롬이 '앱 설치' 기회를 주면 잡아 두었다가 버튼으로 보여줌 (게임 안 설정 화면에서도 같은 걸 씀)
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); window.__bip = e;
+    var b = document.getElementById('install'); if (b) b.hidden = false;
+  });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  // 앱을 쓰던 중 새 버전이 설치되면 표시해 둠 (게임 화면이 이걸 보고 '새 버전' 알림을 띄움)
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.addEventListener('controllerchange', function () { window.__swUpdated = true; });
+  function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
+  function toB64(buf) { var s = '', a = new Uint8Array(buf); for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+  var dataP = fetch('app.enc', { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('load'); return r.json(); });
+
+  function open(key, data) {
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(data.iv) }, key, b64(data.ct)).then(function (pt) {
+      var html = new TextDecoder().decode(pt);
+      document.open(); document.write(html); document.close();
+    });
+  }
+  function showForm(msg) { $('f').hidden = false; $('err').textContent = msg || ''; $('pw').focus(); }
+  function $(id) { return document.getElementById(id); }
+
+  // 1) 이 기기에 저장된 열쇠가 있으면 바로 열기
+  // '기억하기'를 껐어도, 같은 창에서 업데이트·기록 불러오기로 다시 열릴 때는 비밀번호를 다시 묻지 않음
+  function sget(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function sset(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+  var saved = get(KEY) || sget(KEY);
+  dataP.then(function (data) {
+    if (!saved) return showForm();
+    return crypto.subtle.importKey('raw', b64(saved), 'AES-GCM', false, ['decrypt'])
+      .then(function (key) { return open(key, data); })
+      .catch(function () { set(KEY, null); try { sessionStorage.removeItem(KEY); } catch (e) {} showForm('비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.'); });
+  }).catch(function () { showForm('게임을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.'); });
+
+  document.getElementById('install').addEventListener('click', function () {
+    var e = window.__bip; if (!e) return;
+    e.prompt(); (e.userChoice || Promise.resolve()).then(function () { window.__bip = null; document.getElementById('install').hidden = true; });
+  });
+
+  // 2) 비밀번호 입력
+  $('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = $('go'); btn.disabled = true; btn.textContent = '여는 중…'; $('err').textContent = '';
+    dataP.then(function (data) {
+      return crypto.subtle.importKey('raw', new TextEncoder().encode($('pw').value.trim()), 'PBKDF2', false, ['deriveKey'])
+        .then(function (base) {
+          return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(data.salt), iterations: data.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, true, ['decrypt']);
+        })
+        .then(function (key) {
+          return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(data.iv) }, key, b64(data.ct)).then(function () {
+            return crypto.subtle.exportKey('raw', key).then(function (raw) { sset(KEY, toB64(raw)); if ($('remember').checked) set(KEY, toB64(raw)); return key; });
+            return key;
+          });
+        })
+        .then(function (key) { return open(key, data); });
+    }).catch(function () {
+      btn.disabled = false; btn.textContent = '들어가기';
+      $('err').textContent = '비밀번호가 틀렸어요.';
+      $('pw').value = ''; $('pw').focus();
+      $('f').classList.remove('shake'); void $('f').offsetWidth; $('f').classList.add('shake');
+    });
+  });
+})();
+</script>
+</body>
+</html>
