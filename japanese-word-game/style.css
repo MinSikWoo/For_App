@@ -477,3 +477,16 @@ details.list[open] summary::after { transform: rotate(45deg); }
 .log-item ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; color: var(--ink); }
 .log-item li { margin: 2px 0; }
 .ver-tag { font-family: var(--ui); font-size: 12px; color: var(--muted); margin-left: 6px; }
+
+/* ===== v10: QA fixes ===== */
+.toast { pointer-events: none; }
+.playing .update-bar { display: none; }                 /* 게임 중엔 '그만하기'를 가리지 않게 숨김 */
+.jp, .s-jp { word-break: normal; line-break: strict; overflow-wrap: anywhere; }   /* 일본어는 일본어 줄바꿈 규칙 */
+.slot-rug { top: 80%; }
+.tag { color: #45343F; }
+:root { --btn: #E0587C; --btn-ink: #FFFFFF; --btn-edge: #B23C5E; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --btn: #FF8FAB; --btn-ink: #3A1F2A; --btn-edge: #C9607C; } }
+:root[data-theme="dark"] { --btn: #FF8FAB; --btn-ink: #3A1F2A; --btn-edge: #C9607C; }
+.primary { background: var(--btn); color: var(--btn-ink); box-shadow: 0 5px 0 var(--btn-edge); text-shadow: none; }
+.primary:active { box-shadow: 0 1px 0 var(--btn-edge); }
+.update-bar button { background: var(--btn); color: var(--btn-ink); }

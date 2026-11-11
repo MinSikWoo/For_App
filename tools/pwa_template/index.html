@@ -69,12 +69,15 @@
   function $(id) { return document.getElementById(id); }
 
   // 1) 이 기기에 저장된 열쇠가 있으면 바로 열기
-  var saved = get(KEY);
+  // '기억하기'를 껐어도, 같은 창에서 업데이트·기록 불러오기로 다시 열릴 때는 비밀번호를 다시 묻지 않음
+  function sget(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function sset(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+  var saved = get(KEY) || sget(KEY);
   dataP.then(function (data) {
     if (!saved) return showForm();
     return crypto.subtle.importKey('raw', b64(saved), 'AES-GCM', false, ['decrypt'])
       .then(function (key) { return open(key, data); })
-      .catch(function () { set(KEY, null); showForm('비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.'); });
+      .catch(function () { set(KEY, null); try { sessionStorage.removeItem(KEY); } catch (e) {} showForm('비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.'); });
   }).catch(function () { showForm('게임을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.'); });
 
   document.getElementById('install').addEventListener('click', function () {
@@ -93,7 +96,7 @@
         })
         .then(function (key) {
           return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(data.iv) }, key, b64(data.ct)).then(function () {
-            if ($('remember').checked) return crypto.subtle.exportKey('raw', key).then(function (raw) { set(KEY, toB64(raw)); return key; });
+            return crypto.subtle.exportKey('raw', key).then(function (raw) { sset(KEY, toB64(raw)); if ($('remember').checked) set(KEY, toB64(raw)); return key; });
             return key;
           });
         })
@@ -101,6 +104,7 @@
     }).catch(function () {
       btn.disabled = false; btn.textContent = '들어가기';
       $('err').textContent = '비밀번호가 틀렸어요.';
+      $('pw').focus(); $('pw').select();
       $('f').classList.remove('shake'); void $('f').offsetWidth; $('f').classList.add('shake');
     });
   });

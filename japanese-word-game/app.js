@@ -65,6 +65,10 @@
   }
   function inLevel(w, lv) { return lv === 'all' || w.lv === lv; }
   function keyOf(mode, w) { return mode === 'meaning' ? w.ko : mode === 'word' ? w.plain : w.reading; }
+  // 뜻이 겹치는지: 괄호 설명을 빼고 ', ' 로 나눈 조각이 하나라도 같으면 겹침 (예: 書く '쓰다 (글씨)' / 苦い '(맛이) 쓰다')
+  function senses(ko) { return ko.replace(/\([^)]*\)/g, '').split(/,\s+/).map(function (s) { return s.trim(); }).filter(Boolean); }
+  function overlaps(a, b) { var x = senses(a.ko), y = senses(b.ko); return x.some(function (s) { return y.indexOf(s) >= 0; }); }
+  function josa(word, a, b) { var c = word.charCodeAt(word.length - 1); if (c < 0xAC00 || c > 0xD7A3) return word + a + '(' + b + ')'; return word + ((c - 0xAC00) % 28 ? b : a); }
   function optionsFor(w, mode, lv) {
     var used = {}; used[keyOf(mode, w)] = 1;
     var ok = function (x) { return x !== w && (mode !== 'reading' || x.kanji); };
@@ -74,7 +78,9 @@
     var other = shuffle(pool.filter(function (x) { return x.cat !== w.cat; }));
     var out = [w], cands = same.concat(other);
     for (var i = 0; i < cands.length && out.length < 4; i++) {
-      var k = keyOf(mode, cands[i]); if (used[k]) continue; used[k] = 1; out.push(cands[i]);
+      var k = keyOf(mode, cands[i]); if (used[k]) continue;
+      if (mode !== 'reading' && out.some(function (o) { return overlaps(o, cands[i]); })) continue;
+      used[k] = 1; out.push(cands[i]);
     }
     return shuffle(out);
   }
@@ -116,7 +122,9 @@
 
   // ---------- navigation ----------
   var current = 'home';
+  var tabLockUntil = 0;
   function show(id) {
+    if (id === 'result') tabLockUntil = Date.now() + 700;   // '결과 보기' 두 번 누름이 아래 메뉴로 새지 않게
     current = id;
     ['home', 'play', 'result', 'room', 'shop', 'mini'].forEach(function (s) { $(s).hidden = s !== id; });
     document.documentElement.classList.toggle('playing', id === 'play' || id === 'mini');
@@ -133,7 +141,7 @@
     if (id === 'shop') renderShop();
     show(id); updateGems();
   }
-  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.addEventListener('click', function () { go(t.dataset.tab); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.addEventListener('click', function () { if (Date.now() < tabLockUntil) return; go(t.dataset.tab); }); });
 
   // ---------- home ----------
   function levelPool() { return W.filter(function (w) { return inLevel(w, settings.level); }); }
@@ -170,6 +178,7 @@
     var rv = $('startReview');
     rv.hidden = r.length === 0;
     rv.textContent = '틀린 단어 복습하기 · ' + r.length + '개';
+    $('start').textContent = '시작하기 · ' + Math.min(ROUND, Math.max(1, poolFor(settings.cat, settings.mode).length)) + '문제';
     if ($('listBox').open) renderList();
     showToday();
   }
@@ -290,6 +299,7 @@
     animPet($('coachPet'), ok ? 'jump' : 'shake');
     $('next').textContent = G.i + 1 >= G.qs.length ? '결과 보기' : '다음';
     $('next').focus({ preventScroll: true });
+    try { $('feedback').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
     if (settings.sound) speak(w.reading);
   }
   function next() { if (!G || !G.answered) return; G.i++; if (G.i >= G.qs.length) finish(); else { renderQ(); window.scrollTo(0, 0); } }
@@ -361,7 +371,7 @@
   $('goPets').addEventListener('click', function () { shopCat = 'pet'; ownedOnly = true; go('shop'); });
 
   // ---------- shop ----------
-  var shopCat = 'pet', ownedOnly = false, armed = null, armT;
+  var shopCat = 'pet', ownedOnly = false, armed = null, armT, armedAt = 0;
   var HINTS = { pet: '펫은 한 마리와 같이 살아요', wallpaper: '방 벽지를 바꿔요', floor: '방 바닥을 바꿔요', hat: '펫 머리에 씌워요. 다시 누르면 벗어요', face: '펫 얼굴에 붙여요. 다시 누르면 떼요', neck: '펫 목에 걸어요. 다시 누르면 빼요', clothes: '펫에게 입혀요. 다시 누르면 벗어요', back: '펫 등에 달아요. 다시 누르면 빼요', rug: '펫 발밑에 깔아요. 다시 누르면 치워요' };
   function shopList() {
     if (shopCat === 'pet') return SHOP.PETS.map(function (p) { return { id: p.id, slot: 'pet', price: p.price, pet: p }; });
@@ -395,7 +405,7 @@
     var it = shopList().filter(function (x) { return x.id === b.dataset.item; })[0]; if (!it) return;
     var label = it.pet ? it.pet.ko : it.name;
     if (S.owned[it.id]) {
-      if (it.slot === 'pet') { S.pet = it.id; toast(label + '와(과) 함께 살아요!'); }
+      if (it.slot === 'pet') { S.pet = it.id; toast(josa(label, '와', '과') + ' 함께 살아요!'); }
       else if (isOn(it) && it.slot !== 'wallpaper' && it.slot !== 'floor') { delete S.equip[it.slot]; toast(label + ' 뺐어요'); }
       else { S.equip[it.slot] = it.id; toast(label + ' 사용했어요'); }
       saveS(); renderShop(); return;
@@ -405,8 +415,9 @@
       toast('보석이 ' + (it.price - S.gems) + '개 더 필요해요. 단어 게임으로 모아 봐요!');
       return;
     }
+    if (armed === it.id && Date.now() - armedAt < 400) return;   // 너무 빠른 두 번째 터치는 무시
     if (armed !== it.id) {
-      armed = it.id; renderShop();
+      armed = it.id; armedAt = Date.now(); renderShop();
       clearTimeout(armT); armT = setTimeout(function () { armed = null; if (current === 'shop') renderShop(); }, 4000);
       return;
     }
@@ -515,6 +526,7 @@
     W: W, GEM: GEM, levelPool: levelPool, jp: jp, jpSpan: jpSpan, shuffle: shuffle, speak: speak, toast: toast, show: show, go: go,
     petSVG: function (face) { return petSVG(face); },
     level: function () { return settings.level; },
+    overlaps: overlaps,
     award: function (n) { if (n > 0) { S.gems += n; saveS(); updateGems(true); } }
   };
 

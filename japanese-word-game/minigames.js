@@ -76,7 +76,10 @@
 
   // ---------- 1) 짝 맞추기 ----------
   function startPairs() {
-    var words = distinct(A.shuffle(pool(function (w) { return w.kanji; })), 6, function (w) { return w.ko + '|' + w.plain; });
+    var words = [];
+    A.shuffle(pool(function (w) { return w.kanji; })).forEach(function (w) {
+      if (words.length < 6 && !words.some(function (x) { return x.plain === w.plain || A.overlaps(x, w); })) words.push(w);
+    });
     var cards = A.shuffle(words.reduce(function (a, w, i) { return a.concat([{ i: i, side: 'jp', w: w }, { i: i, side: 'ko', w: w }]); }, []));
     var st = { open: [], done: 0, moves: 0, lock: true };
     $('miniBody').innerHTML = '<p class="mini-hint" id="pHint">3초 동안 카드를 외워 보세요!</p><div class="pairs" id="pGrid">' + cards.map(function (c, k) {
@@ -119,7 +122,7 @@
       '<p class="mini-hint" id="oxFb">맞으면 O, 틀리면 X! 틀리면 3초가 줄어요</p>';
     function next() {
       var w = list[Math.floor(Math.random() * list.length)], truth = Math.random() < .5, shown = w.ko;
-      if (!truth) { var o; do { o = list[Math.floor(Math.random() * list.length)]; } while (o.ko === w.ko); shown = o.ko; }
+      if (!truth) { var o; do { o = list[Math.floor(Math.random() * list.length)]; } while (o.ko === w.ko || A.overlaps(o, w)); shown = o.ko; }
       st.q = { w: w, truth: truth };
       $('oxWord').innerHTML = A.jp(w); $('oxMean').textContent = shown;
       var c = $('oxCard'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
@@ -227,8 +230,20 @@
     var same = A.shuffle(list.filter(function (x) { return x !== w && x.cat === w.cat; }));
     var other = A.shuffle(list.filter(function (x) { return x !== w && x.cat !== w.cat; }));
     var out = [w], c = same.concat(other);
-    for (var i = 0; i < c.length && out.length < 4; i++) { var k = key(c[i]); if (used[k]) continue; used[k] = 1; out.push(c[i]); }
+    for (var i = 0; i < c.length && out.length < 4; i++) {
+      var k = key(c[i]); if (used[k]) continue;
+      if (out.some(function (o) { return A.overlaps(o, c[i]); })) continue;   // 뜻이 겹치면 정답이 둘이 되므로 빼기
+      used[k] = 1; out.push(c[i]);
+    }
     return A.shuffle(out);
+  }
+  function seeNext(id) { try { $(id).scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} }
+  // 숫자키 1~4로 보기 고르기, Enter로 다음 (PC)
+  function numberKeys(boxId, nextId) {
+    M.key = function (e) {
+      if (e.key >= '1' && e.key <= '4') { var b = $(boxId).children[+e.key - 1]; if (b && !b.disabled) { b.click(); e.preventDefault(); } }
+      else if (e.key === 'Enter' && nextId && $(nextId) && !$(nextId).hidden) { $(nextId).click(); e.preventDefault(); }
+    };
   }
   function hearts(n, max) { var s = ''; for (var i = 0; i < max; i++) s += '<span class="hp' + (i < n ? '' : ' off') + '">♥</span>'; return s; }
 
@@ -371,6 +386,7 @@
         else round();
       }, 1300);
     });
+    numberKeys('lsOpts');
     round();
   }
 
@@ -439,9 +455,10 @@
       if (st.opts[+b.dataset.i] === x) st.got++;
       mark($('smOpts'), function (k) { return st.opts[k] === x; }, b);
       A.speak(x.reading);
-      $('smNext').hidden = false; $('smNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음';
+      $('smNext').hidden = false; $('smNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음'; seeNext('smNext');
     });
     $('smNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) sEnd(st.got, qs.length); else { round(); window.scrollTo(0, 0); } });
+    numberKeys('smOpts', 'smNext');
     round();
   }
 
@@ -469,9 +486,10 @@
       mark($('sfOpts'), function (k) { return st.opts[k] === x.blank; }, b);
       $('sfJp').innerHTML = sBlankHTML(x, true); A.speak(x.reading);
       $('sfSay').hidden = false;
-      $('sfNext').hidden = false; $('sfNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음';
+      $('sfNext').hidden = false; $('sfNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음'; seeNext('sfNext');
     });
     $('sfNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) sEnd(st.got, qs.length); else { round(); window.scrollTo(0, 0); } });
+    numberKeys('sfOpts', 'sfNext');
     round();
   }
 
@@ -507,7 +525,7 @@
         st.done = true; st.got++; var g = st.tries === 0 ? 2 : 1; st.gems += g;
         $('soAns').className = 'so-answer good';
         $('soFb').innerHTML = (st.tries === 0 ? '한 번에 완성! ' : '완성! ') + '보석 +' + g + '<br>' + sRuby(x.clean);
-        A.speak(x.reading); $('soNext').hidden = false;
+        A.speak(x.reading); $('soNext').hidden = false; seeNext('soNext');
         return;
       }
       st.tries++;
@@ -515,7 +533,7 @@
       if (st.tries >= 2) {
         st.done = true;
         $('soFb').innerHTML = '정답은 이렇게 돼요<br>' + sRuby(x.clean);
-        A.speak(x.reading); $('soNext').hidden = false;
+        A.speak(x.reading); $('soNext').hidden = false; seeNext('soNext');
       } else {
         $('soFb').textContent = '순서가 조금 달라요. 한 번 더!';
         later(function () { st.placed = []; draw(); }, 700);
@@ -524,6 +542,7 @@
     $('soTiles').addEventListener('click', function (e) { var b = e.target.closest('[data-t]'); if (!b || st.done) return; st.placed.push(+b.dataset.t); draw(); check(); });
     $('soAns').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b || st.done) return; st.placed.splice(+b.dataset.p, 1); draw(); });
     $('soNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) finish(st.got === qs.length ? '문장 박사예요!' : '잘했어요!', qs.length + '문장 중 ' + st.got + '개 완성', st.gems); else { round(); window.scrollTo(0, 0); } });
+    M.key = function (e) { if (e.key === 'Enter' && !$('soNext').hidden) { $('soNext').click(); e.preventDefault(); } };
     round();
   }
 })();
