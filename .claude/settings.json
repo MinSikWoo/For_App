@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/wrapup-at-60.js\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '이 저장소의 작업 규칙과 지난 결정사항(## 결정사항 (wrapup))은 claude.md에 있다. 작업 전에 claude.md를 읽어라.'",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
