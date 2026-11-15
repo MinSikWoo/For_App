@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c8364b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SJPT 연습">
+</head>
+<body>
+<meta charset="utf-8">
+<title>SJPT 말하기 연습</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  /* 잠금 화면: 가운데 카드 하나. 앱 본편과 같은 색(벽돌빛 빨강 + 따뜻한 회색) */
+  :root {
+    --bg: #f6f4f1; --card: #ffffff; --ink: #1f1d1b; --muted: #6f6a64;
+    --line: #e6e1da; --accent: #c8364b; --accent-deep: #9e2537; --soft: #fbe9ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161514; --card: #222120; --ink: #f1eeea; --muted: #a49e96;
+      --line: #36332f; --accent: #ef6b7e; --accent-deep: #b84a5a; --soft: #3a2328; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161514; --card: #222120; --ink: #f1eeea; --muted: #a49e96;
+    --line: #36332f; --accent: #ef6b7e; --accent-deep: #b84a5a; --soft: #3a2328; color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink); margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    display: grid; place-items: center; box-sizing: border-box;
+    padding-block: 16px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  form {
+    box-sizing: border-box; width: 100%; max-width: 340px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 22px; padding: 28px 22px 22px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .mark {
+    width: 72px; height: 72px; border-radius: 20px; background: var(--soft); color: var(--accent);
+    display: grid; place-items: center; font-size: 26px; font-weight: 800; letter-spacing: .5px;
+  }
+  h1 { font-size: 21px; margin: 4px 0 0; text-wrap: balance; }
+  p { margin: 0; color: var(--muted); font-size: 14px; text-align: center; }
+  input[type=password] {
+    width: 100%; box-sizing: border-box; font-size: 18px; padding: 13px 16px; border-radius: 14px;
+    border: 2px solid var(--line); background: var(--bg); color: var(--ink); text-align: center;
+  }
+  input[type=password]:focus { outline: none; border-color: var(--accent); }
+  label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); align-self: flex-start; }
+  button {
+    width: 100%; border: 0; border-radius: 14px; padding: 14px; font-size: 17px; font-weight: 700;
+    color: #fff; background: var(--accent); box-shadow: 0 4px 0 var(--accent-deep); cursor: pointer; font-family: inherit;
+  }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--accent-deep); }
+  button:disabled { opacity: .6; }
+  .err { color: var(--accent); font-weight: 700; min-height: 1.4em; font-size: 14px; text-align: center; }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+  @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+</style>
+<form id="f" hidden>
+  <div class="mark" aria-hidden="true">話</div>
+  <h1>SJPT 말하기 연습</h1>
+  <p>비밀번호를 아는 사람만 들어올 수 있어요.</p>
+  <input type="password" id="pw" autocomplete="current-password" placeholder="비밀번호" required>
+  <label><input type="checkbox" id="remember" checked> 이 기기에서 기억하기</label>
+  <div class="err" id="err" role="alert"></div>
+  <button id="go" type="submit">들어가기</button>
+</form>
+<script>
+(function () {
+  var KEY = 'sjpt-unlock-key';
+  function $(id) { return document.getElementById(id); }
+  function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
+  function toB64(buf) { var s = '', a = new Uint8Array(buf); for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+  var dataP = fetch('app.json', { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('load'); return r.json(); });
+
+  function open(key, data) {
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(data.iv) }, key, b64(data.ct)).then(function (pt) {
+      var html = new TextDecoder().decode(pt);
+      document.open(); document.write(html); document.close();
+    });
+  }
+  function showForm(msg) { $('f').hidden = false; $('err').textContent = msg || ''; $('pw').focus(); }
+
+  // 1) 이 기기에 저장된 열쇠가 있으면 바로 열기
+  var saved = get(KEY);
+  dataP.then(function (data) {
+    if (!saved) return showForm();
+    return crypto.subtle.importKey('raw', b64(saved), 'AES-GCM', false, ['decrypt'])
+      .then(function (key) { return open(key, data); })
+      .catch(function () { set(KEY, null); showForm('비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.'); });
+  }).catch(function () { showForm('앱을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.'); });
+
+  // 2) 비밀번호 입력
+  $('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = $('go'); btn.disabled = true; btn.textContent = '여는 중…'; $('err').textContent = '';
+    dataP.then(function (data) {
+      return crypto.subtle.importKey('raw', new TextEncoder().encode($('pw').value.trim()), 'PBKDF2', false, ['deriveKey'])
+        .then(function (base) {
+          return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(data.salt), iterations: data.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, true, ['decrypt']);
+        })
+        .then(function (key) {
+          return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(data.iv) }, key, b64(data.ct)).then(function () {
+            if ($('remember').checked) return crypto.subtle.exportKey('raw', key).then(function (raw) { set(KEY, toB64(raw)); return key; });
+            return key;
+          });
+        })
+        .then(function (key) { return open(key, data); });
+    }).catch(function () {
+      btn.disabled = false; btn.textContent = '들어가기';
+      $('err').textContent = '비밀번호가 틀렸어요. 다시 확인해 주세요.';
+      $('f').classList.remove('shake'); void $('f').offsetWidth; $('f').classList.add('shake');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
