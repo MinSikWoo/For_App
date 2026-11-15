@@ -53,7 +53,11 @@
     A.show('mini'); setGems();
     GAMES[type].start();
   }
+  // 학습 기록 (기록 탭)
+  function logQ(kind, ok) { if (window.STATS) STATS.log(kind, !!ok); }
+  function wk(w) { return 'w' + w.lv.charAt(1); }
   function finish(head, sub, gems) {
+    if (window.STATS && M) STATS.game(M.type);
     stop();
     M.earned += gems; A.award(gems); setGems();
     $('miniBody').hidden = true; $('miniEnd').hidden = false;
@@ -98,6 +102,7 @@
       if (st.open.length < 2) return;
       st.moves++; $('pStat').textContent = '뒤집은 횟수 ' + st.moves;
       var a1 = st.open[0], a2 = st.open[1]; st.open = [];
+      logQ(wk(a1.c.w), a1.c.i === a2.c.i);
       if (a1.c.i === a2.c.i) {
         a1.b.classList.add('done'); a2.b.classList.add('done'); st.done++;
         if (st.done === words.length) {
@@ -130,6 +135,7 @@
     function answer(sayO) {
       if (!st.q || M.dead) return;
       var ok = sayO === st.q.truth, card = $('oxCard');
+      logQ(wk(st.q.w), ok);
       card.classList.remove('good', 'bad'); void card.offsetWidth; card.classList.add(ok ? 'good' : 'bad');
       if (ok) { st.score++; st.combo++; st.best = Math.max(st.best, st.combo); $('oxFb').textContent = st.combo >= 3 ? st.combo + '연속!' : '정답!'; }
       else { st.combo = 0; st.end -= 3000; $('oxFb').innerHTML = '땡! ' + A.jpSpan(st.q.w) + ' = ' + st.q.w.ko; }
@@ -180,6 +186,7 @@
         if (got === w.reading) {
           done = true;
           var g = tries === 0 ? 2 : 1; st.gems += g; if (!tries) st.perfect++;
+          logQ('rd', tries === 0);
           $('pzSlots').classList.add('good'); $('pzWord').innerHTML = A.jp(w);
           $('pzFb').innerHTML = (tries === 0 ? '한 번에 정답! ' : '정답! ') + '보석 +' + g;
           A.speak(w.reading);
@@ -256,7 +263,7 @@
     var arena = $('bbArena'), bubbles = [], last = 0, roundOver = false;
     function round() {
       var w = qs[st.r], opts = choices(w, list, function (x) { return x.plain; });
-      roundOver = false;
+      roundOver = false; st.miss = false;
       $('bbStat').textContent = (st.r + 1) + ' / ' + qs.length + ' · 터뜨린 방울 ' + st.got;
       $('bbTarget').innerHTML = '<small>이 뜻의 단어를 찾아요</small><b>' + w.ko + '</b>';
       arena.innerHTML = '';
@@ -272,12 +279,12 @@
         b.el.addEventListener('click', function () {
           if (roundOver || b.hit) return;
           if (b.w === w) {
-            b.hit = true; roundOver = true; st.got++;
+            b.hit = true; roundOver = true; st.got++; logQ(wk(w), !st.miss);
             b.el.classList.add('pop'); A.speak(w.reading);
             $('bbFb').innerHTML = '톡! ' + A.jpSpan(w) + ' = ' + w.ko;
             later(nextRound, 900);
           } else {
-            b.hit = true; b.el.classList.add('no');
+            b.hit = true; b.el.classList.add('no'); st.miss = true;
             $('bbFb').innerHTML = '그건 ' + A.jpSpan(b.w) + ' (' + b.w.ko + ')';
           }
         });
@@ -300,7 +307,7 @@
       var target = bubbles.filter(function (b) { return b.w === qs[st.r]; })[0];
       if (!roundOver && target && target.y < -110) {
         roundOver = true;
-        $('bbFb').innerHTML = '놓쳤어요! 정답은 ' + A.jpSpan(target.w);
+        $('bbFb').innerHTML = '놓쳤어요! 정답은 ' + A.jpSpan(target.w); logQ(wk(target.w), false);
         later(nextRound, 1200);
       }
       M.raf = requestAnimationFrame(tick);
@@ -330,7 +337,8 @@
     }
     function pick(isUp) {
       if (st.busy || M.dead) return; st.busy = true;
-      var ok = isUp === st.cur.up, pet = $('stPet'), el = isUp ? $('stUp') : $('stDown'), right = st.cur.up ? $('stUp') : $('stDown');
+      var ok = isUp === st.cur.up; logQ(wk(st.cur.w), ok);
+      var pet = $('stPet'), el = isUp ? $('stUp') : $('stDown'), right = st.cur.up ? $('stUp') : $('stDown');
       pet.classList.add(isUp ? 'hop-up' : 'hop-down');
       A.speak(st.cur.w.reading);
       if (ok) {
@@ -379,6 +387,7 @@
       var w = qs[st.r], ok = st.opts[+b.dataset.i] === w, btns = $('lsOpts').children;
       for (var k = 0; k < btns.length; k++) { btns[k].disabled = true; if (st.opts[k] === w) btns[k].classList.add('right'); else if (btns[k] === b) btns[k].classList.add('wrong'); else btns[k].classList.add('dim'); }
       if (ok && !st.peek) st.got++;
+      logQ('ls', ok && !st.peek);
       $('lsFb').innerHTML = (ok ? (st.peek ? '정답! (글자를 봐서 보석은 없어요) ' : '정답! ') : '아쉬워요. ') + A.jpSpan(w) + ' = ' + w.ko;
       later(function () {
         st.r++;
@@ -492,7 +501,7 @@
     }
     $('smOpts').addEventListener('click', function (e) {
       var b = e.target.closest('[data-i]'); if (!b || st.done) return; st.done = true;
-      var x = qs[st.r], ok = st.opts[+b.dataset.i] === x;
+      var x = qs[st.r], ok = st.opts[+b.dataset.i] === x; logQ('st', ok);
       if (ok) st.got++;
       st.marks[st.r] = ok ? 'ok' : 'ng'; drawTrack('sm', qs.length, st.r, st.marks);
       optMark($('smOpts'), function (k) { return st.opts[k] === x; }, b);
@@ -524,7 +533,7 @@
     }
     $('sfOpts').addEventListener('click', function (e) {
       var b = e.target.closest('[data-i]'); if (!b || st.done) return; st.done = true;
-      var x = qs[st.r], ok = st.opts[+b.dataset.i] === x.blank;
+      var x = qs[st.r], ok = st.opts[+b.dataset.i] === x.blank; logQ('st', ok);
       if (ok) st.got++;
       st.marks[st.r] = ok ? 'ok' : 'ng'; drawTrack('sf', qs.length, st.r, st.marks);
       optMark($('sfOpts'), function (k) { return st.opts[k] === x.blank; }, b);
@@ -565,7 +574,7 @@
       $('soTiles').innerHTML = st.tiles.map(function (t) { return '<button type="button" class="so-chunk press" data-t="' + t + '"' + (st.placed.indexOf(t) >= 0 ? ' disabled' : '') + '>' + sRuby(x.chunks[t]) + '</button>'; }).join('');
     }
     function done(ok, head) {
-      var x = qs[st.r]; st.done = true; st.marks[st.r] = ok ? 'ok' : 'ng';
+      var x = qs[st.r]; st.done = true; st.marks[st.r] = ok ? 'ok' : 'ng'; logQ('st', ok && st.tries === 0);
       if (!ok) st.placed = x.chunks.map(function (c, i) { return i; });   // 정답 순서로 보여주기
       draw(); $('soTiles').hidden = true; $('soMsg').hidden = true;
       drawTrack('so', qs.length, st.r, st.marks);

@@ -505,3 +505,70 @@ details.list[open] summary::after { transform: rotate(45deg); }
 .today-sent .s-today { position: relative; z-index: 1; font-size: clamp(22px, 6.2vw, 28px); line-height: 2.1; text-align: center; margin-top: 6px; font-weight: 700; }
 .today-sent .s-today-ko { font-size: 17px; }
 .today-sent::after { background: var(--sora-soft); }
+
+/* ===== v12: 기록 탭 (A 대시보드 + B 달력 + C 펫 성장 + E 성적표) ===== */
+:root { --g1: #FFE3EA; --g2: #FFC2D1; --g3: #FF97B0; --g4: #4FAF7C; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --g1: #4A2C39; --g2: #7A3A52; --g3: #B04E70; --g4: #3E9A68; } }
+:root[data-theme="dark"] { --g1: #4A2C39; --g2: #7A3A52; --g3: #B04E70; --g4: #3E9A68; }
+.tabs-in { grid-template-columns: repeat(4, 1fr); }
+.tab { position: relative; }
+.tab.goal-done::after { content: ""; position: absolute; top: 6px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: var(--matcha); box-shadow: 0 0 0 2px var(--card); }
+#stats .chip { font-size: 12.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.c-fire { background: var(--mikan-soft); color: var(--mikan); }
+.c-ok { background: var(--matcha-soft); color: var(--matcha); }
+.c-blue { background: var(--sora-soft); color: var(--ink); }
+.c-none { background: var(--paper); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
+.st-box { background: var(--card); border-radius: 22px; padding: 14px; box-shadow: var(--shadow); min-width: 0; }
+.st-lbl { font-size: 12.5px; color: var(--muted); }
+.st-big { font-family: var(--display); font-size: 28px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.st-sub { font-family: var(--display); font-weight: 400; font-size: 18px; }
+.st-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.st-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0; }
+.st-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+.st-4 .st-box { padding: 12px 6px; }
+.st-4 .st-big { font-size: 21px; }
+.st-goalrow { display: flex; align-items: center; gap: 14px; }
+.st-tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+.st-tier { border: 0; border-radius: 14px; background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--line); padding: 7px 4px; display: flex; flex-direction: column; align-items: center; gap: 0; min-width: 0; }
+.st-tier b { font-family: var(--display); font-weight: 400; font-size: 15px; }
+.st-tier span { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.3; white-space: nowrap; }
+.st-tier[aria-checked="true"] { background: var(--momo-soft); box-shadow: inset 0 0 0 2px var(--momo); }
+.stp-card { display: flex; align-items: center; gap: 12px; background: linear-gradient(var(--sora-soft), var(--card)); }
+.stp-img { width: 96px; flex: none; }
+.stp-img svg { width: 100%; height: auto; display: block; overflow: visible; }
+.stp-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.stp-info .st-bar { width: 100%; }
+.st-bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; }
+.st-bar i { display: block; height: 100%; border-radius: 5px; transition: width .4s; }
+.st-lvls { display: grid; gap: 8px; }
+.st-lv { display: grid; grid-template-columns: 30px 1fr 64px; gap: 8px; align-items: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+.st-lv b { font-family: var(--display); font-weight: 400; }
+.st-lv span { text-align: right; color: var(--muted); }
+.st-nav { border: 0; background: var(--paper); border-radius: 50%; width: 32px; height: 32px; font-size: 20px; line-height: 1; color: var(--ink); }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 8px 0; }
+.cal-dw { font-size: 11px; color: var(--muted); text-align: center; }
+.cal-d { aspect-ratio: 1; border: 0; border-radius: 9px; font-size: 12px; display: grid; place-items: center; font-variant-numeric: tabular-nums; padding: 0; color: var(--ink); min-width: 0; }
+.cal-d.empty { visibility: hidden; }
+.cal-d.c0 { background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+.cal-d.c1 { background: var(--g1); } .cal-d.c2 { background: var(--g2); } .cal-d.c3 { background: var(--g3); color: #FFFFFF; } .cal-d.c4 { background: var(--g4); color: #FFFFFF; }
+.cal-d.is-today { font-weight: 700; box-shadow: inset 0 0 0 2px var(--momo-deep); }
+.cal-d.sel { outline: 2.5px solid var(--ink); outline-offset: 1px; }
+.st-legend { font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.st-legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; vertical-align: -1px; }
+.st-legend i.c1 { background: var(--g1); } .st-legend i.c2 { background: var(--g2); } .st-legend i.c3 { background: var(--g3); } .st-legend i.c4 { background: var(--g4); }
+.st-day { display: grid; gap: 2px; }
+.st-report { background: var(--card); border-radius: 16px; border: 2.5px solid var(--ink); padding: 14px; display: grid; gap: 8px; }
+.st-report h3 { margin: 0; text-align: center; font-size: 20px; letter-spacing: .4em; }
+.st-tbl { overflow-x: auto; }
+.st-report table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.st-report th, .st-report td { border: 1px solid var(--line); padding: 6px; text-align: center; }
+.st-report th { font-family: var(--display); font-weight: 400; color: var(--muted); }
+.grade { font-family: var(--display); font-size: 19px; }
+.gA { color: var(--matcha); } .gB { color: var(--sora); } .gC { color: var(--mikan); } .g- { color: var(--muted); }
+.st-comment { border: 1.5px dashed var(--line); border-radius: 12px; padding: 8px 10px; font-size: 14px; display: grid; grid-template-columns: 46px 1fr; gap: 10px; align-items: center; }
+.hanko { width: 42px; height: 42px; border-radius: 50%; border: 2.5px solid var(--shu-red, #D9534F); color: var(--shu-red, #D9534F); display: grid; place-items: center; font-size: 17px; transform: rotate(-12deg); }
+.st-weak { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-weak > span { flex: none; background: var(--mikan-soft); border-radius: 12px; padding: 4px 10px; display: flex; flex-direction: column; align-items: center; line-height: 1.5; }
+.st-weak .jp { font-size: 18px; white-space: nowrap; overflow-wrap: normal; word-break: keep-all; }
+.st-weak small { font-size: 11px; color: var(--muted); }
+@media (max-width: 380px) { .st-4 { grid-template-columns: 1fr 1fr; } .st-tier span { font-size: 9.5px; } }

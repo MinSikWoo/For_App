@@ -126,7 +126,7 @@
   function show(id) {
     if (id === 'result') tabLockUntil = Date.now() + 700;   // '결과 보기' 두 번 누름이 아래 메뉴로 새지 않게
     current = id;
-    ['home', 'play', 'result', 'room', 'shop', 'mini'].forEach(function (s) { $(s).hidden = s !== id; });
+    ['home', 'play', 'result', 'room', 'shop', 'mini', 'stats'].forEach(function (s) { $(s).hidden = s !== id; });
     document.documentElement.classList.toggle('playing', id === 'play' || id === 'mini');
     var tab = id === 'result' || id === 'mini' ? 'home' : id;
     Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) {
@@ -139,6 +139,7 @@
     if (id === 'home') renderHome();
     if (id === 'room') renderRoom();
     if (id === 'shop') renderShop();
+    if (id === 'stats' && window.STATS) STATS.render();
     show(id); updateGems();
   }
   Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.addEventListener('click', function () { if (Date.now() < tabLockUntil) return; go(t.dataset.tab); }); });
@@ -271,6 +272,7 @@
       G.gems += gem; S.gems += gem; saveS();
     } else { p.w++; p.s = 0; G.combo = 0; G.wrong.push(w); }
     progress[w.id] = p; save('jw-progress', progress);
+    if (window.STATS) STATS.log(G.mode === 'reading' ? 'rd' : 'w' + w.lv.charAt(1), ok);
     G.marks[G.i] = ok ? 'ok' : 'ng';
     renderTrack();
     updateGems(ok);
@@ -304,6 +306,7 @@
   }
   function next() { if (!G || !G.answered) return; G.i++; if (G.i >= G.qs.length) finish(); else { renderQ(); window.scrollTo(0, 0); } }
   function finish() {
+    if (window.STATS) STATS.game('word');
     var newBest = G.score > (settings.best || 0);
     if (newBest) { settings.best = G.score; save('jw-settings', settings); }
     var rate = G.correct / G.qs.length;
@@ -488,7 +491,7 @@
   // ---------- 기록 옮기기 ----------
   var CODE_HEAD = 'JWC1:';
   $('exportBtn').addEventListener('click', function () {
-    var json = JSON.stringify({ p: progress, s: settings, pet: S });
+    var json = JSON.stringify({ p: progress, s: settings, pet: S, d: window.STATS ? STATS.data() : null, g: window.STATS ? STATS.goal() : null });
     var code = CODE_HEAD + btoa(unescape(encodeURIComponent(json)));
     var box = $('exportCode'); box.value = code; box.hidden = false; $('copyBtn').hidden = false;
     box.focus(); box.select();
@@ -517,6 +520,7 @@
     }
     importArmed = false; clearTimeout(importT);
     save('jw-progress', data.p); save('jw-settings', data.s || {}); save('jw-pet', data.pet);
+    if (window.STATS && data.d) STATS.restore(data.d, data.g);
     $('moveMsg').textContent = '불러왔어요! 잠시 뒤 다시 열려요.';
     setTimeout(function () { location.reload(); }, 800);
   });
@@ -525,6 +529,10 @@
   window.APP = {
     W: W, GEM: GEM, levelPool: levelPool, jp: jp, jpSpan: jpSpan, shuffle: shuffle, speak: speak, toast: toast, show: show, go: go,
     petSVG: function (face) { return petSVG(face); },
+    pet: function () { return petSVG('happy'); },
+    petName: function () { var p = petInfo(); return p ? '<span class="jp" lang="ja">' + jp(p.name) + '</span> ' + p.ko : ''; },
+    gems: function () { return S.gems; },
+    startReview: function () { if (W.some(needsReview)) startGame(true); else toast('복습할 단어가 아직 없어요'); },
     level: function () { return settings.level; },
     overlaps: overlaps,
     award: function (n) { if (n > 0) { S.gems += n; saveS(); updateGems(true); } }
