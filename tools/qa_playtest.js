@@ -127,7 +127,26 @@ async function tap(page, sel, P, o = {}) {
   await page.locator(sel).first().click({ timeout: 5000, ...o });
 }
 async function store(page) {
-  return page.evaluate(() => { const g = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }; return { pet: g('jw-pet'), settings: g('jw-settings'), progress: g('jw-progress'), seen: g('jw-seen-version'), key: !!localStorage.getItem('jw-unlock-key') }; });
+  const s = await page.evaluate(() => { const g = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }; return { pet: g('jw-pet'), settings: g('jw-settings'), progress: g('jw-progress'), seen: g('jw-seen-version'), key: !!localStorage.getItem('jw-unlock-key'), daily: g('jw-daily'), goal: g('jw-goal') }; });
+  // 게임 보석 규칙과 비교할 때는 공부 보너스(하루 목표 달성·연속 달성·펫 레벨업)를 뺀 값을 쓴다
+  if (s.pet) s.pet = { ...s.pet, gems: s.pet.gems - studyBonus(s.daily, s.goal), rawGems: s.pet.gems };
+  return s;
+}
+// stats.js 와 같은 규칙: 펫 Lv.L 은 누적 25·L·(L-1) 문제, 레벨업마다 +10 /
+// 목표 달성일마다 단계 보석 + 그날까지 연속 달성 일수가 3·7·30일이면 보너스
+function studyBonus(daily, goal) {
+  const D = daily || {}, TIER = { light: 5, steady: 10, hard: 15, exam: 20 }, STREAK = { 3: 5, 7: 15, 30: 50 };
+  const tierGem = TIER[(goal || {}).tier] || TIER.steady;
+  let q = 0, sum = 0, run = 0, prev = null;
+  Object.keys(D).sort().forEach(k => {
+    q += D[k].q || 0;
+    if (!D[k].done) { run = 0; prev = null; return; }
+    const d = new Date(k + 'T00:00:00');
+    run = prev && (d - prev) / 864e5 === 1 ? run + 1 : 1; prev = d;
+    sum += tierGem + (STREAK[run] || 0);
+  });
+  let L = 1; while (q >= 25 * (L + 1) * L) L++;
+  return sum + 10 * (L - 1);
 }
 const gems = async page => ((await store(page)).pet || {}).gems;
 async function current(page) { return page.evaluate(() => ['home', 'play', 'result', 'room', 'shop', 'mini'].filter(id => { const e = document.getElementById(id); return e && !e.hidden; })); }
@@ -629,7 +648,8 @@ async function shopping(page, P, { buyAllSlots = false, dbl = false } = {}) {
       return [...document.querySelectorAll('#shopGrid [data-item]')].map(b => { const id = b.dataset.item; const it = slot === 'pet' ? window.SHOP.PETS.find(p => p.id === id) : window.SHOP.ITEMS.find(x => x.id === id); return { id, price: it.price, owned: !!S.owned[id] }; });
     }, slot);
     if (!items.length) continue;
-    const g0 = await gems(page);
+    const rawGems = async () => (await store(page)).pet.rawGems;   // 상점은 실제 잔액(보너스 포함)으로 판단
+    const g0 = await rawGems();
     // 비싸서 못 사는 것 누르기
     const pricey = items.filter(i => !i.owned && i.price > g0).sort((a, b) => b.price - a.price)[0];
     if (pricey && chance(0.6)) {
@@ -638,7 +658,7 @@ async function shopping(page, P, { buyAllSlots = false, dbl = false } = {}) {
       if (!/더 필요해요/.test(toast)) find('shop-poor-toast', '중간', '상점', '보석이 모자랄 때 안내가 안 나옴', toast);
       else if (!toast.includes(String(pricey.price - g0))) find('shop-poor-num', '낮음', '상점', '모자란 보석 개수가 틀림', `${toast} (필요 ${pricey.price - g0})`);
       else good('상점: 보석이 모자라면 몇 개 더 필요한지 알려줌');
-      if ((await gems(page)) !== g0) find('shop-poor-gem', '높음', '상점', '못 사는 물건을 눌렀는데 보석이 줄어듦', '');
+      if ((await rawGems()) !== g0) find('shop-poor-gem', '높음', '상점', '못 사는 물건을 눌렀는데 보석이 줄어듦', '');
     }
     const cheap = items.filter(i => !i.owned && i.price <= g0).sort((a, b) => a.price - b.price)[0];
     if (cheap) {
@@ -666,7 +686,7 @@ async function shopping(page, P, { buyAllSlots = false, dbl = false } = {}) {
       if (!s.pet.owned[cheap.id]) find('shop-buy-fail:' + slot, '높음', '상점', '두 번 눌렀는데 안 사짐', cheap.id);
       else {
         bought++;
-        if (s.pet.gems !== g0 - cheap.price) find('shop-price', '높음', '상점', '보석이 가격만큼 안 줄어듦', `${g0}-${cheap.price} ≠ ${s.pet.gems}`);
+        if (s.pet.rawGems !== g0 - cheap.price) find('shop-price', '높음', '상점', '보석이 가격만큼 안 줄어듦', `${g0}-${cheap.price} ≠ ${s.pet.rawGems}`);
         const on = slot === 'pet' ? s.pet.pet === cheap.id : s.pet.equip[slot] === cheap.id;
         if (!on) find('shop-autoequip', '중간', '상점', '산 물건이 바로 사용되지 않음', cheap.id);
         // 다시 눌러 빼기 / 다시 끼우기
@@ -944,7 +964,7 @@ async function exportImport(page, P, seed) {
     if (dst.pet.gems !== src.pet.gems || JSON.stringify(dst.pet.owned) !== JSON.stringify(src.pet.owned) || Object.keys(dst.progress || {}).length !== Object.keys(src.progress || {}).length) find('import-mismatch', '높음', '기록 옮기기', '불러온 기록이 원래와 다름', `보석 ${src.pet.gems}→${dst.pet.gems}`);
     else good('기록 옮기기: 코드로 보석·펫·소품·공부 기록이 그대로 옮겨짐 (두 번 눌러 확인)');
     const shownGems = await p2.locator('#home .gem-chip span').first().innerText();
-    if (+shownGems !== src.pet.gems) find('import-gemchip', '중간', '기록 옮기기', '불러온 뒤 화면의 보석 숫자가 다름', shownGems);
+    if (+shownGems !== src.pet.rawGems) find('import-gemchip', '중간', '기록 옮기기', '불러온 뒤 화면의 보석 숫자가 다름', shownGems);
     // 새 사람인데 불러온 뒤 '새로워진 점' 창이 뜨는지
     if (await vis(p2, '#news')) find('import-news', '낮음', '기록 옮기기', '기록을 불러온 직후 ‘새로워진 점’ 창이 뜸', '');
     await ctx2.close();
