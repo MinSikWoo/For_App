@@ -490,3 +490,18 @@ details.list[open] summary::after { transform: rotate(45deg); }
 .primary { background: var(--btn); color: var(--btn-ink); box-shadow: 0 5px 0 var(--btn-edge); text-shadow: none; }
 .primary:active { box-shadow: 0 1px 0 var(--btn-edge); }
 .update-bar button { background: var(--btn); color: var(--btn-ink); }
+
+/* ===== v11: sentence cards like word cards ===== */
+.s-qcard { min-height: 200px; }
+.s-qcard .prompt.s-prompt { font-family: var(--jp); font-weight: 700; font-size: clamp(23px, 6.4vw, 30px); line-height: 2.1; padding-top: 26px; overflow-wrap: anywhere; }
+.s-prompt rt, .s-fbjp rt, .s-today rt { font-size: .5em; }
+.s-prompt .s-hint { font-family: var(--display); font-weight: 400; font-size: 18px; line-height: 1.45; color: var(--muted); margin-bottom: 4px; }
+.s-prompt .s-ko-q { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 6vw, 28px); line-height: 1.4; color: var(--ink); }
+.options.one { grid-template-columns: 1fr; }
+.opt.s-opt { min-height: 60px; justify-content: flex-start; text-align: left; padding: 12px 16px 12px 38px; font-size: 16px; }
+.opt.s-opt .num { top: 50%; transform: translateY(-50%); }
+.s-fbjp { font-family: var(--jp); font-weight: 700; font-size: 21px; line-height: 2.1; position: relative; }
+.so-answer.shown { border-style: solid; border-color: var(--mikan); background: var(--mikan-soft); }
+.today-sent .s-today { position: relative; z-index: 1; font-size: clamp(22px, 6.2vw, 28px); line-height: 2.1; text-align: center; margin-top: 6px; font-weight: 700; }
+.today-sent .s-today-ko { font-size: 17px; }
+.today-sent::after { background: var(--sora-soft); }

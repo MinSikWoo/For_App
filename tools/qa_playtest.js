@@ -538,7 +538,7 @@ async function playSMeaning(page, P) {
   await openMini(page, P, 'smeaning');
   let got = 0, n = 0;
   for (let r = 0; r < 10; r++) {
-    const q = await page.evaluate(() => { const p = window.__plain(document.getElementById('smJp')); const s = window.__S.find(x => x.plain === p); return { p, ko: s && s.ko, lv: s && s.lv, opts: [...document.querySelectorAll('#smOpts .opt')].map(b => b.textContent) }; });
+    const q = await page.evaluate(() => { const p = window.__plain(document.getElementById('smPrompt')); const s = window.__S.find(x => x.plain === p); return { p, ko: s && s.ko, lv: s && s.lv, opts: [...document.querySelectorAll('#smOpts .opt')].map(b => b.textContent.replace(/^\d/, '')) }; });
     if (!q.ko) { find('sm-oracle', '낮음', '문장 뜻 고르기', '정답지에서 문장을 못 찾음', q.p); break; }
     if (new Set(q.opts).size !== q.opts.length) find('sm-dup', '중간', '문장 뜻 고르기', '보기에 같은 뜻이 두 번', q.opts.join(' / '));
     const idx = q.opts.indexOf(q.ko);
@@ -556,7 +556,7 @@ async function playSFill(page, P) {
   await openMini(page, P, 'sfill');
   let got = 0, n = 0;
   for (let r = 0; r < 10; r++) {
-    const q = await page.evaluate(() => { const k = document.getElementById('sfKo').textContent; const s = window.__S.find(x => x.ko === k); return { k, blank: s && s.blank, sent: s && s.plain, opts: [...document.querySelectorAll('#sfOpts .opt')].map(b => window.__plain(b)) }; });
+    const q = await page.evaluate(() => { const k = document.querySelector('#sfPrompt .s-hint').textContent; const s = window.__S.find(x => x.ko === k); return { k, blank: s && s.blank, sent: s && s.plain, opts: [...document.querySelectorAll('#sfOpts .opt')].map(b => window.__plain(b)) }; });
     if (!q.blank) { find('sf-oracle', '낮음', '빈칸 채우기', '정답지에서 문장을 못 찾음', q.k); break; }
     const idx = q.opts.indexOf(q.blank);
     if (new Set(q.opts).size !== q.opts.length) find('sf-dup', '중간', '빈칸 채우기', '보기에 같은 말이 두 번', q.opts.join(' / '));
@@ -575,7 +575,7 @@ async function playSOrder(page, P) {
   await openMini(page, P, 'sorder');
   let exp = 0;
   for (let r = 0; r < 6; r++) {
-    const q = await page.evaluate(() => { const k = document.getElementById('soKo').textContent; const s = window.__S.find(x => x.ko === k); return { k, chunks: s && s.chunks, tiles: [...document.querySelectorAll('#soTiles [data-t]')].map(b => +b.dataset.t) }; });
+    const q = await page.evaluate(() => { const k = document.querySelector('#soPrompt .s-ko-q').textContent; const s = window.__S.find(x => x.ko === k); return { k, chunks: s && s.chunks, tiles: [...document.querySelectorAll('#soTiles [data-t]')].map(b => +b.dataset.t) }; });
     if (!q.chunks) break;
     const n = q.chunks.length;
     const order = [...Array(n).keys()];
@@ -587,7 +587,7 @@ async function playSOrder(page, P) {
     if (mode === 'twice') {
       await place(wrongOrder); await sleep(900);
       await place(wrongOrder); await sleep(400);
-      const fb = await page.locator('#soFb').innerText();
+      const fb = await page.locator('#soHead').innerText();
       if (!/정답은/.test(fb)) find('so-twice', '중간', '문장 만들기', '두 번 틀려도 정답을 보여주지 않음', fb);
       else good('문장 만들기: 두 번 틀리면 정답 문장을 보여줌');
       if (!shotsTaken.sorderTwice) { shotsTaken.sorderTwice = 1; await shot(page, 'sorder_twice_wrong'); }

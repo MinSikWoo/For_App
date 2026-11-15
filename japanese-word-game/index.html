@@ -23,7 +23,7 @@
     <header class="hero">
       <span class="gems gem-chip"></span>
       <div class="hero-text">
-        <span class="badge">JLPT N5~N3 단어 <span id="total"></span>개 · 문장 90개</span>
+        <span class="badge">JLPT N5~N3 단어 <span id="total"></span>개 · 문장 510개</span>
         <h1>일본어 단어 카드</h1>
         <p class="lede">정답을 맞히면 보석을 받아요. 보석으로 펫 방을 꾸며 봐요!</p>
       </div>
@@ -62,6 +62,15 @@
     </div>
 
     <h2>문장 공부</h2>
+    <div class="today card today-sent">
+      <span class="tag">오늘의 문장</span>
+      <div class="s-today jp" lang="ja" id="todaySentJp"></div>
+      <div class="today-ko s-today-ko" id="todaySentKo"></div>
+      <div class="row">
+        <button class="pill press" id="todaySentSay" type="button" aria-label="문장 듣기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>발음</span></button>
+        <button class="pill alt press" id="todaySentNext" type="button">다른 문장</button>
+      </div>
+    </div>
     <div class="mini-list" id="sentList"></div>
     <details class="list" id="sentBox">
       <summary>문장 모아 보기</summary>

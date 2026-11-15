@@ -242,7 +242,7 @@
   function numberKeys(boxId, nextId) {
     M.key = function (e) {
       if (e.key >= '1' && e.key <= '4') { var b = $(boxId).children[+e.key - 1]; if (b && !b.disabled) { b.click(); e.preventDefault(); } }
-      else if (e.key === 'Enter' && nextId && $(nextId) && !$(nextId).hidden) { $(nextId).click(); e.preventDefault(); }
+      else if (e.key === 'Enter' && nextId && $(nextId) && $(nextId).offsetParent !== null) { $(nextId).click(); e.preventDefault(); }
     };
   }
   function hearts(n, max) { var s = ''; for (var i = 0; i < max; i++) s += '<span class="hp' + (i < n ? '' : ' off') + '">♥</span>'; return s; }
@@ -435,27 +435,68 @@
     finish(got === total ? '문장 박사예요!' : got >= total * .7 ? '아주 잘했어요!' : '조금씩 늘고 있어요!', total + '문제 중 ' + got + '개', got + (got === total ? 3 : 0));
   }
 
+  // ---------- 단어 카드와 같은 모양의 문장 카드 화면 ----------
+  var CHEERS = ['はなまる! 정답이에요', '대단해요! 정답!', 'すごい! 맞았어요', '좋아요, 정답!'];
+  function cardShell(p) {
+    return '<div class="track" id="' + p + 'Track"></div>' +
+      '<div class="qcard card s-qcard" id="' + p + 'Card"><p class="ask" id="' + p + 'Ask"></p><div class="prompt s-prompt" id="' + p + 'Prompt"></div>' +
+      '<svg class="mark" id="' + p + 'Mark" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" transform="rotate(-100 50 50)"></circle><path d="M24 24 L76 76 M76 24 L24 76"></path></svg></div>';
+  }
+  function feedbackShell(p) {
+    return '<div class="feedback" id="' + p + 'Fb" hidden><div class="coach"><div class="pet-slot" id="' + p + 'Pet" style="width:68px"></div>' +
+      '<div class="bubble"><div class="fb-head" id="' + p + 'Head"></div><div class="s-fbjp" id="' + p + 'Jp"></div><div class="fb-meta" id="' + p + 'Ko"></div></div></div>' +
+      '<div class="row">' + sayBtn(p + 'Say') + '<button class="primary" id="' + p + 'Next" type="button">다음</button></div></div>';
+  }
+  function drawTrack(p, total, i, marks) {
+    var h = ''; for (var k = 0; k < total; k++) h += '<i class="' + (marks[k] || (k === i ? 'now' : '')) + '"></i>';
+    $(p + 'Track').innerHTML = h;
+  }
+  function burst(card) {
+    for (var i = 0; i < 7; i++) {
+      var h = document.createElement('span'); h.className = 'heart'; h.textContent = i % 2 ? '♥' : '✿';
+      var a = (Math.PI * 2 * i) / 7 + Math.random() * .5, d = 80 + Math.random() * 40;
+      h.style.setProperty('--dx', Math.cos(a) * d + 'px'); h.style.setProperty('--dy', Math.sin(a) * d * .7 + 'px');
+      h.style.color = i % 3 === 0 ? 'var(--kinako)' : i % 3 === 1 ? 'var(--momo)' : 'var(--sora)';
+      card.appendChild(h); setTimeout(h.remove.bind(h), 950);
+    }
+  }
+  // 정답/오답 표시: 동그라미·✗, 하트, 펫 말풍선(문장·뜻), 발음, 다음 버튼
+  function reveal(p, ok, x, head, last) {
+    var m = $(p + 'Mark'); m.setAttribute('class', 'mark'); void m.getBoundingClientRect(); m.setAttribute('class', 'mark ' + (ok ? 'ok' : 'ng'));
+    if (ok) burst($(p + 'Card'));
+    var hd = $(p + 'Head'); hd.className = 'fb-head ' + (ok ? 'ok' : 'ng');
+    hd.innerHTML = head || (ok ? CHEERS[Math.floor(Math.random() * CHEERS.length)] + '<span class="fb-gem">' + A.GEM + '+1</span>' : '괜찮아요, 이렇게 외워 봐요');
+    $(p + 'Jp').innerHTML = sRuby(x.clean); $(p + 'Ko').textContent = x.ko;
+    $(p + 'Pet').innerHTML = A.petSVG(ok ? 'happy' : 'sad');
+    var svg = $(p + 'Pet').querySelector('svg'); if (svg) { svg.classList.remove('jump', 'shake'); void svg.getBoundingClientRect(); svg.classList.add(ok ? 'jump' : 'shake'); }
+    $(p + 'Next').textContent = last ? '결과 보기' : '다음';
+    $(p + 'Fb').hidden = false; seeNext(p + 'Fb');
+    A.speak(x.reading);
+  }
+  function hideFeedback(p) { $(p + 'Fb').hidden = true; $(p + 'Mark').setAttribute('class', 'mark'); }
+  function optMark(box, isRight, picked) { mark(box, isRight, picked); }
+
   // ---------- 문장 뜻 고르기 ----------
   function startSMeaning() {
-    var list = sPool(), qs = A.shuffle(list).slice(0, 10), st = { r: 0, got: 0 };
-    $('miniBody').innerHTML = '<p class="mini-stat" id="smStat"></p><div class="s-card card"><div class="s-jp big" id="smJp"></div>' + sayBtn('smSay') + '</div>' +
-      '<div class="s-opts" id="smOpts"></div><button type="button" class="primary" id="smNext" hidden>다음</button>';
+    var list = sPool(), qs = A.shuffle(list).slice(0, 10), st = { r: 0, got: 0, marks: [] };
+    $('miniBody').innerHTML = cardShell('sm') + '<div class="options one" id="smOpts"></div>' + feedbackShell('sm');
     $('smSay').addEventListener('click', function () { A.speak(qs[st.r].reading); });
     function round() {
       var x = qs[st.r], others = A.shuffle(list.filter(function (y) { return y !== x && y.ko !== x.ko; })).slice(0, 3);
       st.opts = A.shuffle([x].concat(others)); st.done = false;
-      $('smStat').textContent = (st.r + 1) + ' / ' + qs.length + ' · 맞힌 개수 ' + st.got;
-      $('smJp').innerHTML = sRuby(x.clean);
-      $('smOpts').innerHTML = st.opts.map(function (o, i) { return '<button type="button" class="opt s-opt" data-i="' + i + '">' + o.ko + '</button>'; }).join('');
-      $('smNext').hidden = true;
+      drawTrack('sm', qs.length, st.r, st.marks);
+      $('smAsk').textContent = (st.r + 1) + '/' + qs.length + ' · 이 문장의 뜻은?';
+      $('smPrompt').innerHTML = sRuby(x.clean);
+      $('smOpts').innerHTML = st.opts.map(function (o, i) { return '<button type="button" class="opt s-opt" data-i="' + i + '"><span class="num">' + (i + 1) + '</span>' + o.ko + '</button>'; }).join('');
+      hideFeedback('sm');
     }
     $('smOpts').addEventListener('click', function (e) {
       var b = e.target.closest('[data-i]'); if (!b || st.done) return; st.done = true;
-      var x = qs[st.r];
-      if (st.opts[+b.dataset.i] === x) st.got++;
-      mark($('smOpts'), function (k) { return st.opts[k] === x; }, b);
-      A.speak(x.reading);
-      $('smNext').hidden = false; $('smNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음'; seeNext('smNext');
+      var x = qs[st.r], ok = st.opts[+b.dataset.i] === x;
+      if (ok) st.got++;
+      st.marks[st.r] = ok ? 'ok' : 'ng'; drawTrack('sm', qs.length, st.r, st.marks);
+      optMark($('smOpts'), function (k) { return st.opts[k] === x; }, b);
+      reveal('sm', ok, x, null, st.r + 1 >= qs.length);
     });
     $('smNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) sEnd(st.got, qs.length); else { round(); window.scrollTo(0, 0); } });
     numberKeys('smOpts', 'smNext');
@@ -464,29 +505,31 @@
 
   // ---------- 빈칸 채우기 ----------
   function startSFill() {
-    var list = sPool(), qs = A.shuffle(list).slice(0, 10), st = { r: 0, got: 0 };
-    $('miniBody').innerHTML = '<p class="mini-stat" id="sfStat"></p><div class="s-card card"><div class="s-ko big" id="sfKo"></div><div class="s-jp big" id="sfJp"></div><span id="sfSayBox"></span></div>' +
-      '<div class="options" id="sfOpts"></div><button type="button" class="primary" id="sfNext" hidden>다음</button>';
-    $('sfSayBox').innerHTML = sayBtn('sfSay');
+    var list = sPool(), qs = A.shuffle(list).slice(0, 10), st = { r: 0, got: 0, marks: [] };
+    $('miniBody').innerHTML = cardShell('sf') + '<div class="options" id="sfOpts"></div>' + feedbackShell('sf');
     $('sfSay').addEventListener('click', function () { A.speak(qs[st.r].reading); });
+    function prompt(x, fill) { return '<div class="s-hint">' + x.ko + '</div><div>' + sBlankHTML(x, fill) + '</div>'; }
     function round() {
       var x = qs[st.r], used = {}, others = [];
       used[sPlain(x.blank)] = 1;
-      A.shuffle(SALL.filter(function (y) { return y !== x; })).forEach(function (y) { var k = sPlain(y.blank); if (others.length < 3 && !used[k]) { used[k] = 1; others.push(y.blank); } });
+      A.shuffle(list.filter(function (y) { return y !== x; })).concat(A.shuffle(SALL)).forEach(function (y) {
+        var k = sPlain(y.blank); if (others.length < 3 && !used[k]) { used[k] = 1; others.push(y.blank); }
+      });
       st.opts = A.shuffle([x.blank].concat(others)); st.done = false;
-      $('sfStat').textContent = (st.r + 1) + ' / ' + qs.length + ' · 맞힌 개수 ' + st.got;
-      $('sfKo').textContent = x.ko; $('sfJp').innerHTML = sBlankHTML(x, false);
+      drawTrack('sf', qs.length, st.r, st.marks);
+      $('sfAsk').textContent = (st.r + 1) + '/' + qs.length + ' · 빈칸에 들어갈 말은?';
+      $('sfPrompt').innerHTML = prompt(x, false);
       $('sfOpts').innerHTML = st.opts.map(function (o, i) { return '<button type="button" class="opt" data-i="' + i + '"><span class="num">' + (i + 1) + '</span>' + sRuby(o) + '</button>'; }).join('');
-      $('sfNext').hidden = true; $('sfSay').hidden = true;
+      hideFeedback('sf');
     }
     $('sfOpts').addEventListener('click', function (e) {
       var b = e.target.closest('[data-i]'); if (!b || st.done) return; st.done = true;
-      var x = qs[st.r];
-      if (st.opts[+b.dataset.i] === x.blank) st.got++;
-      mark($('sfOpts'), function (k) { return st.opts[k] === x.blank; }, b);
-      $('sfJp').innerHTML = sBlankHTML(x, true); A.speak(x.reading);
-      $('sfSay').hidden = false;
-      $('sfNext').hidden = false; $('sfNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음'; seeNext('sfNext');
+      var x = qs[st.r], ok = st.opts[+b.dataset.i] === x.blank;
+      if (ok) st.got++;
+      st.marks[st.r] = ok ? 'ok' : 'ng'; drawTrack('sf', qs.length, st.r, st.marks);
+      optMark($('sfOpts'), function (k) { return st.opts[k] === x.blank; }, b);
+      $('sfPrompt').innerHTML = prompt(x, true);
+      reveal('sf', ok, x, null, st.r + 1 >= qs.length);
     });
     $('sfNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) sEnd(st.got, qs.length); else { round(); window.scrollTo(0, 0); } });
     numberKeys('sfOpts', 'sfNext');
@@ -496,11 +539,11 @@
   // ---------- 문장 만들기 ----------
   function startSOrder() {
     var list = sPool(), long = list.filter(function (x) { return x.chunks.length >= 3; });
-    var qs = A.shuffle(long.length >= 6 ? long : list).slice(0, 6), st = { r: 0, got: 0, gems: 0 };
-    var HINT = '조각을 순서대로 눌러 문장을 만들어요. 놓은 조각을 누르면 돌아가요';
-    $('miniBody').innerHTML = '<p class="mini-stat" id="soStat"></p><div class="s-card card"><div class="s-ko big" id="soKo"></div></div>' +
-      '<div class="so-answer" id="soAns"></div><div class="so-tiles" id="soTiles"></div>' +
-      '<p class="mini-hint" id="soFb"></p><button type="button" class="primary" id="soNext" hidden>다음</button>';
+    var qs = A.shuffle(long.length >= 6 ? long : list).slice(0, 6), st = { r: 0, got: 0, gems: 0, marks: [] };
+    var HINT = '조각을 순서대로 눌러요. 놓은 조각을 누르면 돌아가요';
+    $('miniBody').innerHTML = cardShell('so') + '<div class="so-answer" id="soAns"></div><div class="so-tiles" id="soTiles"></div>' +
+      '<p class="mini-hint" id="soMsg"></p>' + feedbackShell('so');
+    $('soSay').addEventListener('click', function () { A.speak(qs[st.r].reading); });
     function isFree(c) { return FREE.test(sPlain(c)); }
     // 조사로 끝나는 조각끼리는 순서가 바뀌어도 맞는 문장이라 정답으로 인정
     function correct(x, order) { return order.every(function (c, i) { var o = x.chunks[i]; return isFree(o) ? isFree(c) : c === o; }); }
@@ -508,41 +551,55 @@
       var x = qs[st.r], tiles;
       do { tiles = A.shuffle(x.chunks.map(function (c, i) { return i; })); } while (x.chunks.length > 1 && correct(x, tiles.map(function (t) { return x.chunks[t]; })));
       st.tiles = tiles; st.placed = []; st.tries = 0; st.done = false;
-      $('soStat').textContent = (st.r + 1) + ' / ' + qs.length + ' · 완성한 문장 ' + st.got;
-      $('soKo').textContent = x.ko; $('soNext').hidden = true; $('soFb').textContent = HINT;
+      drawTrack('so', qs.length, st.r, st.marks);
+      $('soAsk').textContent = (st.r + 1) + '/' + qs.length + ' · 이 뜻의 문장을 만들어요';
+      $('soPrompt').innerHTML = '<div class="s-ko-q">' + x.ko + '</div>';
+      $('soMsg').textContent = HINT; $('soMsg').hidden = false;
+      hideFeedback('so'); $('soTiles').hidden = false;
       draw();
     }
     function draw() {
       var x = qs[st.r];
-      $('soAns').className = 'so-answer';
+      $('soAns').className = 'so-answer' + (st.done ? (st.marks[st.r] === 'ok' ? ' good' : ' shown') : '');
       $('soAns').innerHTML = st.placed.length ? st.placed.map(function (t, i) { return '<button type="button" class="so-chunk on" data-p="' + i + '">' + sRuby(x.chunks[t]) + '</button>'; }).join('') : '<span class="so-empty">여기에 문장이 만들어져요</span>';
       $('soTiles').innerHTML = st.tiles.map(function (t) { return '<button type="button" class="so-chunk press" data-t="' + t + '"' + (st.placed.indexOf(t) >= 0 ? ' disabled' : '') + '>' + sRuby(x.chunks[t]) + '</button>'; }).join('');
     }
+    function done(ok, head) {
+      var x = qs[st.r]; st.done = true; st.marks[st.r] = ok ? 'ok' : 'ng';
+      if (!ok) st.placed = x.chunks.map(function (c, i) { return i; });   // 정답 순서로 보여주기
+      draw(); $('soTiles').hidden = true; $('soMsg').hidden = true;
+      drawTrack('so', qs.length, st.r, st.marks);
+      reveal('so', ok, x, head, st.r + 1 >= qs.length);
+    }
     function check() {
       var x = qs[st.r]; if (st.placed.length < x.chunks.length) return;
-      $('soNext').textContent = st.r + 1 >= qs.length ? '결과 보기' : '다음';
       if (correct(x, st.placed.map(function (t) { return x.chunks[t]; }))) {
-        st.done = true; st.got++; var g = st.tries === 0 ? 2 : 1; st.gems += g;
-        $('soAns').className = 'so-answer good';
-        $('soFb').innerHTML = (st.tries === 0 ? '한 번에 완성! ' : '완성! ') + '보석 +' + g + '<br>' + sRuby(x.clean);
-        A.speak(x.reading); $('soNext').hidden = false; seeNext('soNext');
-        return;
+        st.got++; var g = st.tries === 0 ? 2 : 1; st.gems += g;
+        return done(true, (st.tries === 0 ? 'はなまる! 한 번에 완성' : '완성했어요!') + '<span class="fb-gem">' + A.GEM + '+' + g + '</span>');
       }
       st.tries++;
-      $('soAns').className = 'so-answer bad';
-      if (st.tries >= 2) {
-        st.done = true;
-        $('soFb').innerHTML = '정답은 이렇게 돼요<br>' + sRuby(x.clean);
-        A.speak(x.reading); $('soNext').hidden = false; seeNext('soNext');
-      } else {
-        $('soFb').textContent = '순서가 조금 달라요. 한 번 더!';
-        later(function () { st.placed = []; draw(); }, 700);
-      }
+      var a = $('soAns'); a.className = 'so-answer bad';
+      if (st.tries >= 2) return done(false, '아쉬워요. 정답은 이 순서예요');
+      $('soMsg').textContent = '순서가 조금 달라요. 한 번 더!';
+      later(function () { st.placed = []; draw(); }, 700);
     }
     $('soTiles').addEventListener('click', function (e) { var b = e.target.closest('[data-t]'); if (!b || st.done) return; st.placed.push(+b.dataset.t); draw(); check(); });
     $('soAns').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b || st.done) return; st.placed.splice(+b.dataset.p, 1); draw(); });
     $('soNext').addEventListener('click', function () { st.r++; if (st.r >= qs.length) finish(st.got === qs.length ? '문장 박사예요!' : '잘했어요!', qs.length + '문장 중 ' + st.got + '개 완성', st.gems); else { round(); window.scrollTo(0, 0); } });
-    M.key = function (e) { if (e.key === 'Enter' && !$('soNext').hidden) { $('soNext').click(); e.preventDefault(); } };
+    M.key = function (e) { if (e.key === 'Enter' && !$('soFb').hidden) { $('soNext').click(); e.preventDefault(); } };
     round();
   }
+
+  // ---------- 오늘의 문장 (첫 화면) ----------
+  var todayS = null;
+  function showTodaySentence(pickNew) {
+    var pool = sPool();
+    if (pickNew || !todayS || pool.indexOf(todayS) < 0) { var t; do { t = pool[Math.floor(Math.random() * pool.length)]; } while (t === todayS && pool.length > 1); todayS = t; }
+    $('todaySentJp').innerHTML = sRuby(todayS.clean); $('todaySentKo').textContent = todayS.ko;
+  }
+  $('todaySentSay').addEventListener('click', function () { if (todayS) A.speak(todayS.reading); });
+  $('todaySentNext').addEventListener('click', function () { showTodaySentence(true); });
+  var prevOnLevel = A.onLevel;
+  A.onLevel = function () { if (prevOnLevel) prevOnLevel(); showTodaySentence(false); };
+  showTodaySentence(true);
 })();
