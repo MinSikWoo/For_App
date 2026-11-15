@@ -1151,6 +1151,11 @@ async function globalTests(seed) {
       if (!r) find('icon-miss:' + ic.src, '높음', '앱 설치', '아이콘을 못 받음', ic.src);
       else if (r !== ic.sizes) find('icon-size:' + ic.src, '중간', '앱 설치', '아이콘 실제 크기가 manifest 와 다름', `${ic.src} ${r} vs ${ic.sizes}`);
     }
+    for (const sc of (man.screenshots || [])) {
+      const r = await page.evaluate(async src => { const res = await fetch(src); if (!res.ok) return null; const bm = await createImageBitmap(await res.blob()); return bm.width + 'x' + bm.height; }, sc.src);
+      if (!r) find('shot-miss:' + sc.src, '중간', '앱 설치', '설치 창 스크린샷을 못 받음', sc.src);
+      else if (r !== sc.sizes) find('shot-size:' + sc.src, '낮음', '앱 설치', '설치 창 스크린샷 실제 크기가 manifest 와 다름', `${sc.src} ${r} vs ${sc.sizes}`);
+    }
     good('앱 설치 조건: manifest(이름, 시작 주소, standalone, 192/512 아이콘) 정상, 아이콘 파일 크기 일치');
   }
   const reg = await page.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await navigator.serviceWorker.ready; return { has: !!r, ctl: !!navigator.serviceWorker.controller, scope: r && r.scope }; });

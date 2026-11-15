@@ -1,6 +1,6 @@
 // 오프라인 실행용. 한 번 열면 파일을 휴대폰에 저장해 두고, 인터넷이 되면 새 버전으로 조용히 바꿔 둔다.
-var VERSION = 'jw-2e88c282e2dc';
-var CORE = ['./', './index.html', './app.enc', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
+var VERSION = 'jw-9cf01184e4a2';
+var CORE = ['./', './index.html', './app.enc', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(CORE.map(function (u) { return new Request(u, { cache: 'reload' }); })); }).then(function () { return self.skipWaiting(); }));
