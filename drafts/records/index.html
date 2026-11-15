@@ -1,0 +1,282 @@
+<title>학습 기록 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Zen+Maru+Gothic:wght@700&display=swap">
+<style>
+/* Layout: plan cards on top, then five phone frames side by side (stacking on phones), all in the game's strawberry-milk stationery world. */
+:root {
+  --paper: #FFF6F4; --dot: #F6DCDD; --card: #FFFFFF; --ink: #45343F; --muted: #8C7683; --line: #F2DFE3;
+  --momo: #FF8DA6; --momo-deep: #E0587C; --momo-soft: #FFE7EC; --matcha: #4FAF7C; --matcha-soft: #E1F5E9;
+  --mikan: #F0844F; --mikan-soft: #FFEADF; --sora: #7FA7F5; --sora-soft: #E6EEFF; --kinako: #F2C14E; --kinako-soft: #FFF3D1;
+  --g1: #FFE3EA; --g2: #FFC2D1; --g3: #FF97B0; --g4: #E0587C;
+  --display: "Jua", "Gowun Dodum", sans-serif; --ui: "Gowun Dodum", "Apple SD Gothic Neo", sans-serif; --jp: "Zen Maru Gothic", sans-serif;
+  --shadow: 0 2px 0 var(--line), 0 14px 30px -20px rgba(224, 88, 124, .45);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #241B22; --dot: #33262F; --card: #30252E; --ink: #F8EAF0; --muted: #BBA3B2; --line: #45363F;
+  --momo-deep: #FF8FAB; --momo-soft: #4A2C39; --matcha-soft: #23392D; --mikan-soft: #45302A; --sora-soft: #283048; --kinako-soft: #413720;
+  --g1: #4A2C39; --g2: #7A3A52; --g3: #B04E70; --g4: #FF8FAB; --shadow: 0 2px 0 rgba(0,0,0,.25), 0 14px 30px -20px rgba(0,0,0,.6); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #241B22; --dot: #33262F; --card: #30252E; --ink: #F8EAF0; --muted: #BBA3B2; --line: #45363F;
+  --momo-deep: #FF8FAB; --momo-soft: #4A2C39; --matcha-soft: #23392D; --mikan-soft: #45302A; --sora-soft: #283048; --kinako-soft: #413720;
+  --g1: #4A2C39; --g2: #7A3A52; --g3: #B04E70; --g4: #FF8FAB; --shadow: 0 2px 0 rgba(0,0,0,.25), 0 14px 30px -20px rgba(0,0,0,.6); color-scheme: dark; }
+body { background-color: var(--paper); background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px); background-size: 22px 22px; color: var(--ink); font-family: var(--ui); font-size: 16px; line-height: 1.6; word-break: keep-all; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 26px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: 32px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 23px; margin: 18px 0 0; display: flex; align-items: center; gap: 8px; }
+h2::before { content: ""; width: 10px; height: 10px; border-radius: 4px; background: var(--momo); transform: rotate(45deg); }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 64ch; }
+.badge { align-self: flex-start; font-size: 13px; font-weight: 700; color: var(--momo-deep); background: var(--momo-soft); padding: 3px 12px; border-radius: 999px; }
+.jp { font-family: var(--jp); font-weight: 700; }
+.card { background: var(--card); border-radius: 22px; box-shadow: var(--shadow); }
+svg { display: block; overflow: visible; }
+
+/* goal tiers */
+.tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.tier { padding: 16px; display: flex; flex-direction: column; gap: 4px; position: relative; min-width: 0; }
+.tier b { font-family: var(--display); font-weight: 400; font-size: 20px; }
+.tier .n { font-family: var(--display); font-size: 34px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tier .n small { font-size: 16px; }
+.tier .meta { font-size: 13.5px; color: var(--muted); }
+.tier .gem { font-size: 13px; background: var(--sora-soft); border-radius: 999px; padding: 2px 10px; align-self: flex-start; margin-top: 4px; }
+.tier.rec { box-shadow: inset 0 0 0 3px var(--momo), var(--shadow); }
+.tier.rec::after { content: "추천"; position: absolute; top: -10px; right: 14px; background: var(--momo-deep); color: #FFFFFF; font-family: var(--display); font-size: 14px; padding: 1px 12px; border-radius: 999px; }
+.items { padding: 16px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+.items li { margin: 0; }
+.items ol { margin: 0; padding-left: 20px; display: contents; }
+
+/* phones */
+.phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; align-items: start; }
+.mock { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.mock-head { display: flex; align-items: baseline; gap: 10px; }
+.mock-head .k { font-family: var(--display); font-size: 26px; color: var(--momo-deep); }
+.mock-head b { font-family: var(--display); font-weight: 400; font-size: 20px; }
+.mock .why { font-size: 14px; color: var(--muted); min-height: 3.2em; }
+.phone { border-radius: 34px; border: 7px solid var(--ink); background: var(--paper); overflow: hidden; padding: 18px 14px 20px; display: flex; flex-direction: column; gap: 10px; max-width: 360px; width: 100%; box-sizing: border-box; }
+.ph-title { display: flex; justify-content: space-between; align-items: center; }
+.ph-title b { font-family: var(--display); font-weight: 400; font-size: 22px; }
+.chip { font-size: 12.5px; font-weight: 700; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.c-fire { background: var(--mikan-soft); color: var(--mikan); }
+.c-ok { background: var(--matcha-soft); color: var(--matcha); }
+.c-blue { background: var(--sora-soft); color: var(--ink); }
+.box { background: var(--card); border-radius: 18px; padding: 12px; box-shadow: 0 1px 0 var(--line); }
+.lbl { font-size: 12px; color: var(--muted); }
+.big { font-family: var(--display); font-size: 26px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
+.grid4 .big { font-size: 19px; }
+.bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 5px; }
+.lv { display: grid; grid-template-columns: 34px 1fr 40px; gap: 8px; align-items: center; font-size: 13px; }
+.lv b { font-family: var(--display); font-weight: 400; }
+.weak { display: flex; flex-wrap: wrap; gap: 6px; }
+.weak span { background: var(--mikan-soft); border-radius: 10px; padding: 2px 8px; font-size: 14px; }
+.weak span .jp { font-size: 15px; }
+.btn { display: block; text-align: center; background: var(--momo-deep); color: #FFFFFF; font-family: var(--display); border-radius: 14px; padding: 9px; font-size: 16px; }
+.ex { font-size: 11.5px; color: var(--muted); text-align: center; }
+
+/* B calendar */
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal .dw { font-size: 11px; color: var(--muted); text-align: center; }
+.cal .d { aspect-ratio: 1; border-radius: 8px; font-size: 11px; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+.d0 { background: var(--card); box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+.d1 { background: var(--g1); } .d2 { background: var(--g2); } .d3 { background: var(--g3); color: #FFFFFF; } .d4 { background: var(--g4); color: #FFFFFF; }
+.d.sel { outline: 2.5px solid var(--ink); outline-offset: 1px; }
+.d.empty { visibility: hidden; }
+.legend { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); justify-content: flex-end; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+/* C pet */
+.petstage { position: relative; display: flex; flex-direction: column; align-items: center; padding: 14px 12px 12px; background: linear-gradient(var(--sora-soft), var(--card)); border-radius: 18px; }
+.petstage .lvtag { position: absolute; top: 10px; left: 10px; }
+.bowl { display: flex; align-items: center; gap: 10px; }
+
+/* D sticker book */
+.book { background: var(--card); border-radius: 18px; padding: 12px 12px 14px 22px; position: relative; background-image: repeating-linear-gradient(transparent 0 31px, var(--line) 31px 32px); }
+.book::before { content: ""; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: var(--momo); opacity: .5; }
+.stamps { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.stamps .s { aspect-ratio: 1; display: grid; place-items: center; font-size: 10px; color: var(--muted); }
+
+/* E report card */
+.report { background: var(--card); border-radius: 12px; padding: 12px; border: 2px solid var(--ink); }
+.report h4 { margin: 0 0 6px; font-family: var(--jp); text-align: center; font-size: 18px; letter-spacing: .3em; }
+.report table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.report th, .report td { border: 1px solid var(--line); padding: 5px 6px; text-align: center; }
+.report th { font-family: var(--display); font-weight: 400; color: var(--muted); }
+.grade { font-family: var(--display); font-size: 18px; }
+.gA { color: var(--matcha); } .gB { color: var(--sora); } .gC { color: var(--mikan); }
+.comment { border: 1.5px dashed var(--line); border-radius: 10px; padding: 8px 10px; font-size: 13px; display: grid; grid-template-columns: 46px 1fr; gap: 8px; align-items: center; }
+.hanko { width: 40px; height: 40px; border-radius: 50%; border: 2.5px solid #D9534F; color: #D9534F; display: grid; place-items: center; font-family: var(--jp); font-size: 14px; transform: rotate(-12deg); }
+
+.next { padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+.next ol { margin: 0; padding-left: 20px; }
+@media (max-width: 760px) { .tiers { grid-template-columns: 1fr 1fr; } .items { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <span class="badge">계획 · 시안 1차</span>
+  <h1>하루 목표와 학습 기록 페이지</h1>
+  <p class="lede">아직 게임에는 넣지 않았어요. 하루 목표 단계와 기록 페이지 모양을 골라 주시면 그대로 만들게요. 시안의 숫자는 모두 예시예요.</p>
+
+  <h2>1. 하루 목표: 4단계 추천</h2>
+  <p class="lede">단어·문장·미니게임에서 푼 문제를 모두 더해 셉니다. 목표를 채우면 보석 보너스를 받고, 매일 채우면 연속 기록이 쌓여요. 단계는 설정에서 언제든 바꿀 수 있어요.</p>
+  <div class="tiers">
+    <div class="tier card"><b>가볍게</b><span class="n">30<small>문제</small></span><span class="meta">약 10분 · 바쁜 날, 습관 만들기</span><span class="gem">달성 보석 +5</span></div>
+    <div class="tier card rec"><b>꾸준히</b><span class="n">60<small>문제</small></span><span class="meta">약 20분 · 매일 N5~N4 공부</span><span class="gem">달성 보석 +10</span></div>
+    <div class="tier card"><b>열심히</b><span class="n">100<small>문제</small></span><span class="meta">약 30분 · 진도를 빨리</span><span class="gem">달성 보석 +15</span></div>
+    <div class="tier card"><b>시험 대비</b><span class="n">150<small>문제</small></span><span class="meta">약 45분 · JLPT 한두 달 전</span><span class="gem">달성 보석 +20</span></div>
+  </div>
+  <p class="lede">연속 달성 보너스: 3일 +5, 7일 +15, 30일 +50 보석 (제안)</p>
+
+  <h2>2. 기록 페이지에 넣을 항목</h2>
+  <div class="items card"><ol>
+    <li>오늘 목표 진행도</li><li>연속 달성 일수 · 최고 기록</li>
+    <li>최근 7일 막대그래프</li><li>한 달 달력 (날마다 공부한 양)</li>
+    <li>누적: 총 문제·정답률·외운 단어·보석</li><li>레벨별 진도 (N5·N4·N3)</li>
+    <li>자주 틀리는 단어 + 바로 복습</li><li>배지 (7일 연속, 100단어 등)</li>
+  </ol></div>
+
+  <h2>3. 기록 페이지 시안 5가지</h2>
+  <div class="phones">
+
+    <!-- A -->
+    <div class="mock">
+      <div class="mock-head"><span class="k">A</span><b>한눈에 대시보드</b></div>
+      <p class="why">숫자와 그래프를 한 화면에. 무엇을 얼마나 했는지 가장 빨리 보여요.</p>
+      <div class="phone">
+        <div class="ph-title"><b>내 기록</b><span class="chip c-fire">연속 5일</span></div>
+        <div class="box" style="display:flex;align-items:center;gap:12px">
+          <svg width="92" height="92" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--line)" stroke-width="12"/><circle cx="50" cy="50" r="40" fill="none" stroke="var(--momo)" stroke-width="12" stroke-linecap="round" stroke-dasharray="176 251" transform="rotate(-90 50 50)"/><text x="50" y="47" text-anchor="middle" font-family="Jua" font-size="22" fill="var(--ink)">42</text><text x="50" y="65" text-anchor="middle" font-size="11" fill="var(--muted)">/ 60문제</text></svg>
+          <div><div class="lbl">오늘 목표 · 꾸준히</div><div class="big">70%</div><div class="lbl">18문제 남았어요</div></div>
+        </div>
+        <div class="box"><div class="lbl">최근 7일</div>
+          <svg viewBox="0 0 280 110" width="100%"><line x1="0" x2="280" y1="38" y2="38" stroke="var(--momo)" stroke-dasharray="4 4"/><text x="278" y="34" text-anchor="end" font-size="10" fill="var(--momo-deep)">목표 60</text>
+            <g fill="var(--g3)"><rect x="8" y="30" width="26" height="62" rx="5"/><rect x="48" y="52" width="26" height="40" rx="5"/><rect x="88" y="20" width="26" height="72" rx="5"/><rect x="128" y="36" width="26" height="56" rx="5"/><rect x="168" y="34" width="26" height="58" rx="5"/><rect x="208" y="14" width="26" height="78" rx="5"/></g><rect x="248" y="52" width="26" height="40" rx="5" fill="var(--momo)"/>
+            <g font-size="10" fill="var(--muted)" text-anchor="middle"><text x="21" y="106">월</text><text x="61" y="106">화</text><text x="101" y="106">수</text><text x="141" y="106">목</text><text x="181" y="106">금</text><text x="221" y="106">토</text><text x="261" y="106">오늘</text></g></svg></div>
+        <div class="grid4"><div class="box"><div class="big">1,284</div><div class="lbl">총 문제</div></div><div class="box"><div class="big">82%</div><div class="lbl">정답률</div></div><div class="box"><div class="big">146</div><div class="lbl">외운 단어</div></div><div class="box"><div class="big">640</div><div class="lbl">보석</div></div></div>
+        <div class="box" style="display:grid;gap:6px"><div class="lbl">레벨별 진도 (외운 단어)</div>
+          <div class="lv"><b>N5</b><div class="bar"><i style="width:62%;background:var(--matcha)"></i></div><span>62%</span></div>
+          <div class="lv"><b>N4</b><div class="bar"><i style="width:28%;background:var(--sora)"></i></div><span>28%</span></div>
+          <div class="lv"><b>N3</b><div class="bar"><i style="width:6%;background:var(--kinako)"></i></div><span>6%</span></div></div>
+        <div class="box"><div class="lbl" style="margin-bottom:6px">자주 틀리는 단어</div><div class="weak"><span class="jp">働く</span><span class="jp">寂しい</span><span class="jp">届ける</span></div></div>
+        <p class="ex">숫자는 예시</p>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="mock">
+      <div class="mock-head"><span class="k">B</span><b>잔디 달력</b></div>
+      <p class="why">한 달을 색으로 채워 가는 재미. 빈 날이 눈에 띄어서 매일 하게 돼요.</p>
+      <div class="phone">
+        <div class="ph-title"><b>11월</b><span class="chip c-fire">연속 5일 · 최고 9일</span></div>
+        <div class="box">
+          <div class="cal" id="cal"></div>
+          <div class="legend" style="margin-top:8px">적게 <i class="d0"></i><i class="d1"></i><i class="d2"></i><i class="d3"></i><i class="d4"></i> 많이</div>
+        </div>
+        <div class="box" style="display:grid;gap:4px">
+          <div class="ph-title"><b style="font-size:18px">11월 14일 (금)</b><span class="chip c-ok">목표 달성</span></div>
+          <div class="grid2"><div><div class="lbl">푼 문제</div><div class="big">72</div></div><div><div class="lbl">정답률</div><div class="big">88%</div></div></div>
+          <div class="lbl">단어 게임 4판 · 문장 뜻 고르기 2판 · 방울 터뜨리기 1판</div>
+        </div>
+        <div class="grid2"><div class="box"><div class="lbl">이번 달 공부한 날</div><div class="big">11일</div></div><div class="box"><div class="lbl">이번 달 문제</div><div class="big">642</div></div></div>
+        <p class="ex">숫자는 예시</p>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="mock">
+      <div class="mock-head"><span class="k">C</span><b>펫 성장</b></div>
+      <p class="why">공부하면 펫이 레벨업해요. 목표는 ‘밥그릇 채우기’. 가장 게임 같고 귀여워요.</p>
+      <div class="phone">
+        <div class="ph-title"><b>펫 성장 일기</b><span class="chip c-fire">연속 5일</span></div>
+        <div class="petstage">
+          <span class="chip c-blue lvtag">Lv.7</span>
+          <div id="petC" style="width:120px"></div>
+          <div class="jp" style="font-size:18px">ねこ <span style="font-family:var(--ui);font-size:14px;color:var(--muted)">고양이</span></div>
+          <div style="width:100%;display:grid;gap:4px;margin-top:6px"><div class="lbl">다음 레벨까지 120문제</div><div class="bar"><i style="width:64%;background:var(--sora)"></i></div></div>
+        </div>
+        <div class="box bowl">
+          <svg width="64" height="48" viewBox="0 0 64 48"><path d="M4 18 H60 Q58 44 32 44 Q6 44 4 18Z" fill="var(--kinako-soft)" stroke="var(--ink)" stroke-width="2.5"/><path d="M8 22 H56 Q54 30 52 32 H12 Q10 30 8 22Z" fill="var(--kinako)"/><ellipse cx="32" cy="18" rx="28" ry="5" fill="none" stroke="var(--ink)" stroke-width="2.5"/></svg>
+          <div style="flex:1"><div class="lbl">오늘의 밥그릇</div><div class="big">42 / 60</div><div class="bar" style="margin-top:4px"><i style="width:70%;background:var(--kinako)"></i></div></div>
+        </div>
+        <div class="box" style="display:grid;gap:6px"><div class="lbl">성장 기록</div>
+          <div style="font-size:14px">Lv.5 · 리본을 선물 받았어요</div><div style="font-size:14px">Lv.6 · 단어 100개 외움</div><div style="font-size:14px;color:var(--muted)">Lv.8 · 왕관 (다음 목표)</div></div>
+        <p class="ex">숫자는 예시</p>
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="mock">
+      <div class="mock-head"><span class="k">D</span><b>스티커 공책</b></div>
+      <p class="why">목표를 채운 날마다 하나마루 도장이 찍혀요. 일본 학교 공책 느낌으로 모으는 재미.</p>
+      <div class="phone">
+        <div class="ph-title"><b>11월 도장 공책</b><span class="chip c-ok">도장 12개</span></div>
+        <div class="book"><div class="stamps" id="stamps"></div></div>
+        <div class="box" style="display:flex;gap:10px;align-items:center"><div id="petD" style="width:56px;flex:none"></div><div style="font-size:14px">5일 연속이에요! 내일도 도장 찍으면 <b>보석 +15</b> 보너스 (7일 연속)</div></div>
+        <div class="box"><div class="lbl" style="margin-bottom:6px">모은 배지</div>
+          <div class="weak"><span style="background:var(--kinako-soft)">첫 목표 달성</span><span style="background:var(--kinako-soft)">3일 연속</span><span style="background:var(--kinako-soft)">단어 100개</span><span style="background:var(--line);color:var(--muted)">7일 연속</span></div></div>
+        <p class="ex">숫자는 예시</p>
+      </div>
+    </div>
+
+    <!-- E -->
+    <div class="mock">
+      <div class="mock-head"><span class="k">E</span><b>성적표 (成績表)</b></div>
+      <p class="why">레벨·분야별로 등급을 매겨 약한 곳을 바로 알려줘요. 시험 준비에 가장 실용적이에요.</p>
+      <div class="phone">
+        <div class="ph-title"><b>이번 주 성적표</b><span class="chip c-blue">11/10 ~ 11/16</span></div>
+        <div class="report"><h4>成績表</h4>
+          <table><thead><tr><th>분야</th><th>푼 문제</th><th>정답률</th><th>등급</th></tr></thead>
+            <tbody>
+              <tr><td>N5 단어</td><td>180</td><td>91%</td><td class="grade gA">A</td></tr>
+              <tr><td>N4 단어</td><td>120</td><td>78%</td><td class="grade gB">B</td></tr>
+              <tr><td>N3 단어</td><td>40</td><td>55%</td><td class="grade gC">C</td></tr>
+              <tr><td>문장</td><td>60</td><td>80%</td><td class="grade gB">B</td></tr>
+              <tr><td>한자 읽기</td><td>50</td><td>64%</td><td class="grade gC">C</td></tr>
+            </tbody></table></div>
+        <div class="comment"><span class="hanko">良</span><span>N5는 아주 잘하고 있어요! <b>한자 읽기</b>와 <b>N3 단어</b>를 조금 더 해 봐요.</span></div>
+        <div class="box"><div class="lbl" style="margin-bottom:6px">이번 주 자주 틀린 단어</div><div class="weak"><span class="jp">怪しい</span><span class="jp">届ける</span><span class="jp">慣れる</span><span class="jp">珍しい</span></div></div>
+        <span class="btn">약한 부분만 복습하기</span>
+        <p class="ex">숫자는 예시</p>
+      </div>
+    </div>
+
+  </div>
+
+  <h2>고르실 것</h2>
+  <div class="next card"><ol>
+    <li>하루 목표 기본 단계 (추천: 꾸준히 60문제)</li>
+    <li>기록 페이지 시안 A~E 중 하나 (섞어도 돼요. 예: “A에 B 달력 추가”)</li>
+    <li>기록 페이지 위치: 아래 메뉴에 ‘기록’ 탭 추가 (추천) 또는 첫 화면 안에</li>
+  </ol></div>
+</div>
+
+<script src="shop.js"></script>
+<script>
+(function () {
+  // B 달력 (11월, 1일 = 토요일)
+  var lv = [0,0, 2,3,1,0,4,2,3, 0,1,3,4,4,2, 1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0];
+  var cal = document.getElementById('cal'), h = '';
+  ['일','월','화','수','목','금','토'].forEach(function (d) { h += '<span class="dw">' + d + '</span>'; });
+  for (var i = 0; i < 6; i++) h += '<span class="d empty"></span>';
+  for (var d = 1; d <= 30; d++) { var v = d <= 16 ? lv[d + 1] : 0; h += '<span class="d d' + v + (d === 14 ? ' sel' : '') + '">' + d + '</span>'; }
+  cal.innerHTML = h;
+  // D 도장
+  var st = document.getElementById('stamps'), s = '';
+  ['일','월','화','수','목','금','토'].forEach(function (x) { s += '<span class="s">' + x + '</span>'; });
+  for (i = 0; i < 6; i++) s += '<span class="s"></span>';
+  var got = { 3:2, 4:2, 5:1, 7:2, 8:2, 9:2, 11:2, 12:2, 13:2, 14:2, 15:2, 2:2, 10:1 };
+  for (d = 1; d <= 30; d++) {
+    var g = got[d] || 0;
+    s += '<span class="s">' + (g === 2 ? '<svg viewBox="0 0 40 40" width="100%"><circle cx="20" cy="20" r="15" fill="none" stroke="#E0587C" stroke-width="3"/><circle cx="20" cy="20" r="9" fill="none" stroke="#E0587C" stroke-width="2.4"/><text x="20" y="38.5" font-size="7" text-anchor="middle" fill="var(--muted)">' + d + '</text></svg>'
+      : g === 1 ? '<svg viewBox="0 0 40 40" width="100%"><circle cx="20" cy="20" r="15" fill="none" stroke="#F2C14E" stroke-width="3" stroke-dasharray="4 4"/><text x="20" y="38.5" font-size="7" text-anchor="middle" fill="var(--muted)">' + d + '</text></svg>' : d) + '</span>';
+  }
+  st.innerHTML = s;
+  if (window.SHOP) {
+    document.getElementById('petC').innerHTML = SHOP.petSVG('cat', 'happy', { hat: 'h1', neck: 'n3' });
+    document.getElementById('petD').innerHTML = SHOP.petSVG('cat', 'smile', {});
+  }
+})();
+</script>
